@@ -147,7 +147,9 @@ def get_attraction(attraction_id: int):
             "description": result_attraction[3],
             "address": result_attraction[4],
             "transport": result_attraction[5],
-            "mrt": str(result_attraction[6]) if result_attraction[6] is not None else "",
+            "mrt": (
+                str(result_attraction[10]) if result_attraction[10] is not None else ""
+            ),
             "lat": result_attraction[7],
             "lng": result_attraction[8],
             "images": image_urls,
