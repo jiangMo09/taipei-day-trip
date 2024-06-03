@@ -51,7 +51,6 @@ class Attraction(BaseModel):
 @app.get("/api/attractions")
 def get_attractions(page: int = Query(0, ge=0), keyword: str = Query(None)):
     connection = None
-    print("keyword", keyword)
     try:
         connection = get_db_connection()
         start_index = page * 12
