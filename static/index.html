@@ -4,6 +4,39 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Index</title>
+    <link rel="stylesheet" href="/static/css/index.css" />
   </head>
-  <body></body>
+  <body>
+    <div class="header">
+      <div class="head">
+        <div class="title">台北一日遊</div>
+        <div class="menu">
+          <span class="item">預定行程</span>
+          <span class="item">登入/註冊</span>
+        </div>
+      </div>
+    </div>
+    <div class="banner">
+      <div class="slogan">
+        <div class="title">輕鬆享受台北一日悠閒</div>
+        <div class="subtitle">探索每個角落，體驗城市的深度旅遊行程</div>
+        <div class="search-bar">
+          <input class="search" type="text" placeholder="輸入景點名稱查詢" />
+          <img
+            class="btn"
+            src="/static/images/btn.svg"
+            onclick="onSearchBtnClick()"
+          />
+        </div>
+      </div>
+    </div>
+    <div class="mrt-list">
+      <img class="arrow arrow-left" src="/static/images/arrow-left.svg" />
+      <div class="mrts"></div>
+      <img class="arrow arrow-right" src="/static/images/arrow-right.svg" />
+    </div>
+    <div class="attractions"></div>
+    <footer>COPYRIGHT © 2024 台北一日遊</footer>
+    <script src="/static/js/index.js"></script>
+  </body>
 </html>

@@ -2,8 +2,9 @@ import logging
 
 from fastapi import *
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List
 import mysql.connector
 from utils.mysql import get_db_connection, execute_query
 
@@ -12,6 +13,7 @@ logging.basicConfig(filename="app.log", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 # Static Pages (Never Modify Code in this Block)
@@ -51,7 +53,6 @@ class Attraction(BaseModel):
 @app.get("/api/attractions")
 def get_attractions(page: int = Query(0, ge=0), keyword: str = Query(None)):
     connection = None
-    print("keyword", keyword)
     try:
         connection = get_db_connection()
         start_index = page * 12
