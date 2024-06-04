@@ -4,12 +4,20 @@ body {
   box-sizing: border-box;
 }
 
+.header {
+  background-color: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
 .head {
   max-width: 1200px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 10px auto;
+  margin: auto;
+  padding: 10px;
 
   .title {
     color: #448899;
@@ -116,6 +124,8 @@ body {
       color: #666666;
       cursor: pointer;
     }
+
+    
   }
 
   .mrts::-webkit-scrollbar {
@@ -131,6 +141,7 @@ body {
   grid-template-columns: repeat(4, 1fr);
   gap: 30px;
   margin: auto;
+  margin-bottom: 40px;
 
   .attraction {
     border-radius: 5px;
@@ -161,6 +172,16 @@ body {
       color: #757575;
     }
   }
+}
+
+footer {
+  font-weight: 700;
+  background-color: #757575;
+  color: white;
+  height: 104px;
+  width: 100%;
+  text-align: center;
+  line-height: 104px;
 }
 
 @media screen and (min-width: 600px) and (max-width: 1040px) {

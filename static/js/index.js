@@ -74,6 +74,12 @@ const getAttractions = (keyword) => {
     });
 };
 
+const onMRTclick = (mrtName) => {
+  const inputElement = document.querySelector(".search");
+  inputElement.value = mrtName;
+  getAttractions(mrtName);
+};
+
 const getMRTs = () => {
   fetch("/api/mrts")
     .then((response) => response.json())
@@ -86,7 +92,7 @@ const getMRTs = () => {
           mrtSpan.classList.add("mrt");
           mrtSpan.textContent = mrtName;
           mrtSpan.addEventListener("click", function () {
-            getAttractions(mrtName);
+            onMRTclick(mrtName);
           });
 
           mrtsDiv.appendChild(mrtSpan);
