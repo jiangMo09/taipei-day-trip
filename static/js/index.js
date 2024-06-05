@@ -123,15 +123,17 @@ const attachEventListeners = () => {
   const arrowRight = mrtList.querySelector(".arrow-right");
 
   arrowLeft.addEventListener("click", function () {
+    const scrollAmount = mrts.clientWidth * 0.9;
     mrts.scrollBy({
-      left: -1000,
+      left: -scrollAmount,
       behavior: "smooth"
     });
   });
 
   arrowRight.addEventListener("click", function () {
+    const scrollAmount = mrts.clientWidth * 0.9;
     mrts.scrollBy({
-      left: 1000,
+      left: scrollAmount,
       behavior: "smooth"
     });
   });
