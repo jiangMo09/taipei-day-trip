@@ -1,8 +1,13 @@
+import logging
+
 from typing import List
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 import mysql.connector
 from utils.mysql import get_db_connection, execute_query
+
+logging.basicConfig(filename="app.log", level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class Attraction(BaseModel):
@@ -33,9 +38,8 @@ def get_attractions(page: int = Query(0, ge=0), keyword: str = Query(None)):
             where_clause = "WHERE MRT.name = %s OR ATTRACTIONS.name LIKE %s"
 
         base_query = """
-            SELECT ATTRACTIONS.id, ATTRACTIONS.name, ATTRACTIONS.category, ATTRACTIONS.description,ATTRACTIONS.address, ATTRACTIONS.transport, 
-            GROUP_CONCAT(DISTINCT MRT.name) AS mrt,
-            ATTRACTIONS.lat, ATTRACTIONS.lng, 
+            SELECT ATTRACTIONS.id, ATTRACTIONS.name, ATTRACTIONS.category, ATTRACTIONS.description, ATTRACTIONS.address, ATTRACTIONS.transport, 
+            GROUP_CONCAT(DISTINCT MRT.name) AS mrt, ATTRACTIONS.lat, ATTRACTIONS.lng, 
             GROUP_CONCAT(DISTINCT IMAGES.url) AS images
             FROM ATTRACTIONS
             LEFT JOIN IMAGES ON ATTRACTIONS.id = IMAGES.attraction_id
@@ -67,20 +71,31 @@ def get_attractions(page: int = Query(0, ge=0), keyword: str = Query(None)):
 
         attractions = []
         for attraction in attractions_data:
-            mrt = attraction[6] if attraction[6] is not None else ""
-            images = attraction[9].split(",") if attraction[9] else []
+            (
+                id,
+                name,
+                category,
+                description,
+                address,
+                transport,
+                mrt,
+                lat,
+                lng,
+                images,
+            ) = attraction
+            images_list = images.split(",") if images else []
             attractions.append(
                 Attraction(
-                    id=attraction[0],
-                    name=attraction[1],
-                    category=attraction[2],
-                    description=attraction[3],
-                    address=attraction[4],
-                    transport=attraction[5],
-                    mrt=mrt,
-                    lat=attraction[7],
-                    lng=attraction[8],
-                    images=images,
+                    id=id,
+                    name=name,
+                    category=category,
+                    description=description,
+                    address=address,
+                    transport=transport,
+                    mrt=mrt if mrt is not None else "",
+                    lat=lat,
+                    lng=lng,
+                    images=images_list,
                 )
             )
 
@@ -113,18 +128,20 @@ def get_attraction(attraction_id: int):
         )
         image_urls = [image[0] for image in result_images]
 
+        (id, name, category, description, address, transport, lat, lng, mrt) = (
+            result_attraction
+        )
+
         attraction_data = {
-            "id": result_attraction[0],
-            "name": result_attraction[1],
-            "category": result_attraction[2],
-            "description": result_attraction[3],
-            "address": result_attraction[4],
-            "transport": result_attraction[5],
-            "mrt": (
-                str(result_attraction[10]) if result_attraction[10] is not None else ""
-            ),
-            "lat": result_attraction[7],
-            "lng": result_attraction[8],
+            "id": id,
+            "name": name,
+            "category": category,
+            "description": description,
+            "address": address,
+            "transport": transport,
+            "mrt": mrt if mrt is not None else "",
+            "lat": lat,
+            "lng": lng,
             "images": image_urls,
         }
 

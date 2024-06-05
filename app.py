@@ -1,11 +1,8 @@
-import logging
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from api import home_router
 
-logging.basicConfig(filename="app.log", level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
