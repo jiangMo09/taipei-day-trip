@@ -124,8 +124,6 @@ body {
       color: #666666;
       cursor: pointer;
     }
-
-    
   }
 
   .mrts::-webkit-scrollbar {
@@ -162,6 +160,9 @@ body {
         color: white;
         background-color: rgba(0, 0, 0, 0.6);
         font-weight: 700;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
 
