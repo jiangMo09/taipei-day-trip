@@ -57,7 +57,7 @@ def get_attractions(page: int = Query(0, ge=0), keyword: str = Query(None)):
 
         query = """
             {base_query}
-            LIMIT %s, 12;
+            LIMIT %s, 13;
         """.format(
             base_query=base_query
         )
@@ -73,6 +73,9 @@ def get_attractions(page: int = Query(0, ge=0), keyword: str = Query(None)):
         attractions_data = execute_query(
             connection, query, tuple(query_params), fetch_method="fetchall"
         )
+
+        has_next_page = len(attractions_data) > 12
+        attractions_data = attractions_data[:12] 
 
         attractions = []
         for attraction in attractions_data:
@@ -94,7 +97,7 @@ def get_attractions(page: int = Query(0, ge=0), keyword: str = Query(None)):
                 )
             )
 
-        next_page = page + 1 if len(attractions) == 12 else None
+        next_page = page + 1 if has_next_page else None
         return {"nextPage": next_page, "data": attractions}
 
     except mysql.connector.Error as err:
