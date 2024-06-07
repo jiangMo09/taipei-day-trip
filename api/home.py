@@ -6,8 +6,13 @@ from pydantic import BaseModel
 import mysql.connector
 from utils.mysql import get_db_connection, execute_query
 
-logging.basicConfig(filename="app.log", level=logging.INFO)
-logger = logging.getLogger(__name__)
+
+logger = logging.getLogger("api.home")
+file_handler = logging.FileHandler("app.log")
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+logger.setLevel(logging.INFO)
 
 
 class Attraction(BaseModel):
@@ -71,30 +76,20 @@ def get_attractions(page: int = Query(0, ge=0), keyword: str = Query(None)):
 
         attractions = []
         for attraction in attractions_data:
-            (
-                id,
-                name,
-                category,
-                description,
-                address,
-                transport,
-                mrt,
-                lat,
-                lng,
-                images,
-            ) = attraction
-            images_list = images.split(",") if images else []
+            images_list = (
+                attraction["images"].split(",") if attraction["images"] else []
+            )
             attractions.append(
                 Attraction(
-                    id=id,
-                    name=name,
-                    category=category,
-                    description=description,
-                    address=address,
-                    transport=transport,
-                    mrt=mrt if mrt is not None else "",
-                    lat=lat,
-                    lng=lng,
+                    id=attraction["id"],
+                    name=attraction["name"],
+                    category=attraction["category"],
+                    description=attraction["description"],
+                    address=attraction["address"],
+                    transport=attraction["transport"],
+                    mrt=attraction["mrt"] if attraction["mrt"] is not None else "",
+                    lat=attraction["lat"],
+                    lng=attraction["lng"],
                     images=images_list,
                 )
             )
@@ -126,22 +121,20 @@ def get_attraction(attraction_id: int):
         result_images = execute_query(
             connection, query_images, (attraction_id,), fetch_method="fetchall"
         )
-        image_urls = [image[0] for image in result_images]
-
-        (id, name, category, description, address, transport, lat, lng, mrt) = (
-            result_attraction
-        )
+        image_urls = [image["url"] for image in result_images]
 
         attraction_data = {
-            "id": id,
-            "name": name,
-            "category": category,
-            "description": description,
-            "address": address,
-            "transport": transport,
-            "mrt": mrt if mrt is not None else "",
-            "lat": lat,
-            "lng": lng,
+            "id": result_attraction["id"],
+            "name": result_attraction["name"],
+            "category": result_attraction["category"],
+            "description": result_attraction["description"],
+            "address": result_attraction["address"],
+            "transport": result_attraction["transport"],
+            "mrt": (
+                result_attraction["mrt"] if result_attraction["mrt"] is not None else ""
+            ),
+            "lat": result_attraction["lat"],
+            "lng": result_attraction["lng"],
             "images": image_urls,
         }
 
@@ -161,8 +154,8 @@ def get_mrt():
         connection = get_db_connection()
         query = "SELECT * FROM MRT"
         mrts = execute_query(connection, query, None, fetch_method="fetchall")
-        sorted_mrts = sorted(mrts, key=lambda mrt: mrt[2], reverse=True)
-        sorted_mrts_names = [sorted_mrt[1] for sorted_mrt in sorted_mrts]
+        sorted_mrts = sorted(mrts, key=lambda mrt: mrt["name"], reverse=True)
+        sorted_mrts_names = [sorted_mrt["name"] for sorted_mrt in sorted_mrts]
 
         return {"data": sorted_mrts_names}
     except mysql.connector.Error as err:

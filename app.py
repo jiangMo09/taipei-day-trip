@@ -1,13 +1,31 @@
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from api import home_router
 
 
+logger = logging.getLogger("app")
+file_handler = logging.FileHandler("access.log")
+formatter = logging.Formatter("%(asctime)s - %(message)s")
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+logger.setLevel(logging.INFO)
+
+
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(home_router)
+
+
+@app.middleware("http")
+async def log_ip_address(request: Request, call_next):
+    ip_address = request.client.host
+    logger.info(f"Request from IP: {ip_address} to URL: {request.url}")
+    response = await call_next(request)
+    return response
 
 
 # Static Pages (Never Modify Code in this Block)

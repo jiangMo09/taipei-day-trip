@@ -22,7 +22,7 @@ def get_db_connection():
 
 
 def execute_query(connection, query, values=None, fetch_method="fetchone"):
-    with connection.cursor() as cursor:
+    with connection.cursor(dictionary=True) as cursor:
         if values:
             cursor.execute(query, values)
         else:
