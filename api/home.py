@@ -5,8 +5,9 @@ from typing import List
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 import mysql.connector
-from utils.mysql import get_db_connection, execute_query
 from redis_client import async_redis_client
+import redis.exceptions
+from utils.mysql import get_db_connection, execute_query
 
 
 logger = logging.getLogger("api.home")
@@ -37,9 +38,12 @@ router = APIRouter()
 async def get_attractions(page: int = Query(0, ge=0), keyword: str = Query(None)):
     cache_key = f"attractions_{page}_{keyword}"
 
-    cached_data = await async_redis_client.get(cache_key)
-    if cached_data:
-        return json.loads(cached_data)
+    try:
+        cached_data = await async_redis_client.get(cache_key)
+        if cached_data:
+            return json.loads(cached_data)
+    except redis.exceptions.RedisError as e:
+        logger.error("Redis 连接错误: %s", e)
 
     connection = None
     try:
@@ -113,7 +117,12 @@ async def get_attractions(page: int = Query(0, ge=0), keyword: str = Query(None)
                 "data": [attraction.dict() for attraction in attractions],
             }
         )
-        await async_redis_client.setex(cache_key, 1800, json_data)
+
+        try:
+            await async_redis_client.setex(cache_key, 1800, json_data)
+        except redis.exceptions.RedisError as e:
+            logger.error("Redis 连接错误: %s", e)
+
         return {"nextPage": next_page, "data": attractions}
 
     except mysql.connector.Error as err:
