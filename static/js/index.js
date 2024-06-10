@@ -3,6 +3,9 @@ let loading = false;
 let defaultKeyword = "";
 
 const appendAttraction = (attraction, attractionsDiv) => {
+  const attractionLink = document.createElement("a");
+  attractionLink.href = `attraction/${attraction.id}`;
+
   const attractionDiv = document.createElement("div");
   attractionDiv.classList.add("attraction");
 
@@ -30,8 +33,8 @@ const appendAttraction = (attraction, attractionsDiv) => {
   infoDiv.appendChild(categorySpan);
   attractionDiv.appendChild(imageDiv);
   attractionDiv.appendChild(infoDiv);
-
-  attractionsDiv.appendChild(attractionDiv);
+  attractionLink.appendChild(attractionDiv);
+  attractionsDiv.appendChild(attractionLink);
 };
 
 const getAttractions = (keyword) => {
