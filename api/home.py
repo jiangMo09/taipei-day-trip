@@ -1,10 +1,13 @@
 import logging
+import json
 
 from typing import List
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 import mysql.connector
+import redis.exceptions
 from utils.mysql import get_db_connection, execute_query
+from utils.redis_client import async_redis_client
 
 
 logger = logging.getLogger("api.home")
@@ -32,7 +35,16 @@ router = APIRouter()
 
 
 @router.get("/api/attractions")
-def get_attractions(page: int = Query(0, ge=0), keyword: str = Query(None)):
+async def get_attractions(page: int = Query(0, ge=0), keyword: str = Query(None)):
+    cache_key = f"attractions_{page}_{keyword}"
+
+    try:
+        cached_data = await async_redis_client.get(cache_key)
+        if cached_data:
+            return json.loads(cached_data)
+    except redis.exceptions.RedisError as e:
+        logger.error("Redis 連線錯誤: %s", e)
+
     connection = None
     try:
         connection = get_db_connection()
@@ -75,7 +87,7 @@ def get_attractions(page: int = Query(0, ge=0), keyword: str = Query(None)):
         )
 
         has_next_page = len(attractions_data) > 12
-        attractions_data = attractions_data[:12] 
+        attractions_data = attractions_data[:12]
 
         attractions = []
         for attraction in attractions_data:
@@ -98,6 +110,19 @@ def get_attractions(page: int = Query(0, ge=0), keyword: str = Query(None)):
             )
 
         next_page = page + 1 if has_next_page else None
+
+        json_data = json.dumps(
+            {
+                "nextPage": next_page,
+                "data": [attraction.dict() for attraction in attractions],
+            }
+        )
+
+        try:
+            await async_redis_client.setex(cache_key, 1800, json_data)
+        except redis.exceptions.RedisError as e:
+            logger.error("Redis 連線錯誤: %s", e)
+
         return {"nextPage": next_page, "data": attractions}
 
     except mysql.connector.Error as err:
