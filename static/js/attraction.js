@@ -3,6 +3,8 @@ import { createState } from "./utils/createState.js";
 
 const currentImageIndex = createState(0);
 const imagesCount = createState(0);
+const MORNING_COST = 2000;
+const AFTERNOON_COST = 2500;
 
 const appendImage = (src, index, imagesDiv) => {
   const img = document.createElement("img");
@@ -17,129 +19,90 @@ const appendCircles = (imagesDiv, circlesCount) => {
 
   for (let i = 0; i < circlesCount; i++) {
     const circle = document.createElement("span");
-    const active = i == 0;
-    circle.className = `circle circle-${i} ${active ? "active" : ""}`;
+    circle.className = `circle circle-${i} ${i === 0 ? "active" : ""}`;
     circlesDiv.appendChild(circle);
   }
 
   imagesDiv.appendChild(circlesDiv);
 };
 
-const appendBooking = (bookingDiv, data) => {
-  const { name, category, mrt } = data;
-  const titleDiv = document.createElement("div");
-  titleDiv.className = "title";
-  titleDiv.textContent = name;
-  bookingDiv.appendChild(titleDiv);
-
-  const typeDiv = document.createElement("div");
-  typeDiv.className = "type";
-  typeDiv.innerHTML = `<span class="category">${category}</span> at <span class="mrt">${mrt}</span>`;
-  bookingDiv.appendChild(typeDiv);
-
-  const tourDiv = document.createElement("div");
-  tourDiv.className = "tour";
-
-  const tourTitleDiv = document.createElement("div");
-  tourTitleDiv.className = "title";
-  tourTitleDiv.textContent = "訂購導覽行程";
-  tourDiv.appendChild(tourTitleDiv);
-
-  const descriptionDiv = document.createElement("div");
-  descriptionDiv.className = "description";
-  descriptionDiv.textContent = "以此景點為中心的一日行程，帶您探索城市角落故事";
-  tourDiv.appendChild(descriptionDiv);
-
-  const dateDiv = document.createElement("div");
-  dateDiv.className = "date";
-  dateDiv.innerHTML =
-    '選擇日期：<input type="date" /><img class="icon-calendar" src="/static/images/icon-calendar.svg" />';
-  tourDiv.appendChild(dateDiv);
-
-  const timeDiv = document.createElement("div");
-  timeDiv.className = "time";
-  timeDiv.innerHTML = `
-  選擇時間：
-  <label class="custom-radio">
-    <input type="radio" name="time" value="morning" checked />
-    <span class="radio-checkmark"></span>
-    <span class="label-text">上半天</span>
-  </label>
-  <label class="custom-radio">
-    <input type="radio" name="time" value="afternoon" />
-    <span class="radio-checkmark"></span>
-    <span class="label-text">下半天</span>
-  </label>
-`;
-  tourDiv.appendChild(timeDiv);
-
-  const costDiv = document.createElement("div");
-  costDiv.className = "cost";
-  costDiv.innerHTML = '導覽費用：新台幣 <span id="cost-amount">2000</span> 元';
-  tourDiv.appendChild(costDiv);
-
-  const btnDiv = document.createElement("div");
-  btnDiv.className = "btn";
-  btnDiv.textContent = "開始預約行程";
-  tourDiv.appendChild(btnDiv);
-
-  bookingDiv.appendChild(tourDiv);
+const appendBooking = (bookingDiv, { name, category, mrt }) => {
+  bookingDiv.innerHTML = `
+    <div class="title">${name}</div>
+    <div class="type">
+      <span class="category">${category}</span> at <span class="mrt">${mrt}</span>
+    </div>
+    <div class="tour">
+      <div class="title">訂購導覽行程</div>
+      <div class="description">以此景點為中心的一日行程，帶您探索城市角落故事</div>
+      <div class="date">
+        選擇日期：<input type="date" /><img class="icon-calendar" src="/static/images/icon-calendar.svg" />
+      </div>
+      <div class="time">
+        選擇時間：
+        <label class="custom-radio">
+          <input type="radio" name="time" value="morning" checked />
+          <span class="radio-checkmark"></span>
+          <span class="label-text">上半天</span>
+        </label>
+        <label class="custom-radio">
+          <input type="radio" name="time" value="afternoon" />
+          <span class="radio-checkmark"></span>
+          <span class="label-text">下半天</span>
+        </label>
+      </div>
+      <div class="cost">導覽費用：新台幣 <span id="cost-amount">${MORNING_COST}</span> 元</div>
+      <div class="btn">開始預約行程</div>
+    </div>
+  `;
 };
 
-const appendInfo = (bottomDiv, data) => {
-  const { description, address, transport } = data;
-
-  const infoDiv = document.createElement("div");
-  infoDiv.className = "info";
-  infoDiv.textContent = description;
-  bottomDiv.appendChild(infoDiv);
-
-  const addressDiv = document.createElement("div");
-  addressDiv.className = "address";
-  addressDiv.innerHTML = `<div class="title">景點地址：</div>${address}`;
-  bottomDiv.appendChild(addressDiv);
-
-  const transportDiv = document.createElement("div");
-  transportDiv.className = "transport";
-  transportDiv.innerHTML = `<div class="title">交通方式：</div>${transport}`;
-  bottomDiv.appendChild(transportDiv);
-
-  bottomDiv.appendChild(bottomDiv);
+const appendInfo = (bottomDiv, { description, address, transport }) => {
+  bottomDiv.innerHTML = `
+    <div class="info">${description}</div>
+    <div class="address"><div class="title">景點地址：</div>${address}</div>
+    <div class="transport"><div class="title">交通方式：</div>${transport}</div>
+  `;
 };
 
 const getAttraction = async () => {
   const apiPath = "/api" + window.location.pathname;
-  const attraction = await fetchData(apiPath);
-  const { data, error } = attraction;
-
-  if (error) {
-    alert(attraction.message);
-    window.location.href = "/";
-    return;
-  }
-
-  const images = data.images;
   const imagesDiv = document.querySelector(".images");
-
-  images.forEach((src, index) => {
-    appendImage(src, index, imagesDiv);
-  });
-
-  imagesCount.setState(images.length);
-  appendCircles(imagesDiv, images.length);
-
   const bookingDiv = document.querySelector(".booking");
-  appendBooking(bookingDiv, {
-    name: data.name,
-    category: data.category,
-    mrt: data.mrt
-  });
-
   const bottomDiv = document.querySelector(".bottom");
-  appendInfo(bottomDiv, {
-    description: data.description,
-    address: data.address,
-    transport: data.transport
+
+  try {
+    const { data, error } = await fetchData(apiPath);
+
+    if (error) {
+      alert(attraction.message);
+      window.location.href = "/";
+      return;
+    }
+
+    const { images, name, category, mrt, description, address, transport } =
+      data;
+
+    images.forEach((src, index) => appendImage(src, index, imagesDiv));
+    imagesCount.setState(images.length);
+
+    appendCircles(imagesDiv, images.length);
+    appendBooking(bookingDiv, { name, category, mrt });
+    appendInfo(bottomDiv, { description, address, transport });
+  } catch (error) {
+    alert(error.message);
+    window.location.href = "/";
+  }
+};
+
+const updateImageDisplay = () => {
+  const images = document.querySelectorAll(".image");
+  const circles = document.querySelectorAll(".circle");
+  const currentIndex = currentImageIndex.getState();
+
+  images.forEach((img, index) => {
+    img.style.display = index === currentIndex ? "block" : "none";
+    circles[index].classList.toggle("active", index === currentIndex);
   });
 };
 
@@ -157,31 +120,13 @@ const onArrowLeftClick = () => {
   updateImageDisplay();
 };
 
-const updateImageDisplay = () => {
-  const images = document.querySelectorAll(".image");
-  const circles = document.querySelectorAll(".circle");
-  const currentIndex = currentImageIndex.getState();
-
-  images.forEach((img, index) => {
-    img.style.display = index === currentIndex ? "block" : "none";
-    circles[index].classList.toggle("active", index === currentIndex);
-  });
-};
-
-window.addEventListener("load", function () {
-  getAttraction();
+window.addEventListener("load", async () => {
+  await getAttraction();
 
   const costAmount = document.getElementById("cost-amount");
-  const timeRadios = document.querySelectorAll('input[name="time"]');
-
-  timeRadios.forEach((radio) => {
-    radio.addEventListener("change", (event) => {
-      if (event.target.value === "morning") {
-        costAmount.textContent = "2000";
-      } else if (event.target.value === "afternoon") {
-        costAmount.textContent = "2500";
-      }
-    });
+  document.querySelector(".time").addEventListener("change", (event) => {
+    costAmount.textContent =
+      event.target.value === "morning" ? MORNING_COST : AFTERNOON_COST;
   });
 });
 
