@@ -13,6 +13,7 @@
 .swiper-images {
   position: relative;
   width: fit-content;
+  margin-right: 30px;
 
   .arrow {
     position: absolute;
@@ -60,7 +61,7 @@
       margin-right: 0;
     }
 
-    .circle::after {
+    .active.circle::after {
       content: "";
       position: absolute;
       width: 9px;
