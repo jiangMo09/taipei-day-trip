@@ -52,7 +52,7 @@
       top: 0;
       left: 0;
       opacity: 0;
-      transition: opacity 1s ease-in-out;
+      transition: opacity 0.3s ease-in-out;
     }
 
     .image.active {
@@ -64,6 +64,7 @@
       bottom: 10px;
       width: 100%;
       text-align: center;
+      z-index: 10;
     }
 
     .circle {
@@ -170,7 +171,6 @@
         width: 22px;
         background-color: white;
         border-radius: 50%;
-        transition: background-color 0.3s, border-color 0.3s;
       }
 
       .custom-radio input[type="radio"]:checked ~ .radio-checkmark {
