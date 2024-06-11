@@ -1,5 +1,5 @@
-import { fetchData } from "./utils/fetchData.js";
-import { createState } from "./utils/createState.js";
+import { fetchData } from "../utils/fetchData.js";
+import { createState } from "../utils/createState.js";
 
 const currentImageIndex = createState(0);
 const imagesCount = createState(0);
