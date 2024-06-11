@@ -7,9 +7,12 @@ const MORNING_COST = 2000;
 const AFTERNOON_COST = 2500;
 
 const appendImage = (src, index, imagesDiv) => {
+  const isFirst = index == 0;
   const img = document.createElement("img");
   img.src = src;
-  img.className = `image image-${index}`;
+  img.className = isFirst
+    ? `image image-${index} active`
+    : `image image-${index}`;
   imagesDiv.appendChild(img);
 };
 
@@ -105,7 +108,7 @@ const updateImageDisplay = () => {
   const currentIndex = currentImageIndex.getState();
 
   images.forEach((img, index) => {
-    img.style.display = index === currentIndex ? "block" : "none";
+    img.classList.toggle("active", index === currentIndex);
     circles[index].classList.toggle("active", index === currentIndex);
   });
 };
