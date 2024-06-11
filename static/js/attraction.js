@@ -20,6 +20,10 @@ const appendCircles = (imagesDiv, circlesCount) => {
   for (let i = 0; i < circlesCount; i++) {
     const circle = document.createElement("span");
     circle.className = `circle circle-${i} ${i === 0 ? "active" : ""}`;
+    circle.addEventListener("click", () => {
+      currentImageIndex.setState(i);
+      updateImageDisplay();
+    });
     circlesDiv.appendChild(circle);
   }
 
@@ -36,7 +40,7 @@ const appendBooking = (bookingDiv, { name, category, mrt }) => {
       <div class="title">訂購導覽行程</div>
       <div class="description">以此景點為中心的一日行程，帶您探索城市角落故事</div>
       <div class="date">
-        選擇日期：<input type="date" /><img class="icon-calendar" src="/static/images/icon-calendar.svg" />
+        選擇日期：<input type="date" />
       </div>
       <div class="time">
         選擇時間：

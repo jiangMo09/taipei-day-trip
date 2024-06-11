@@ -4,12 +4,16 @@ body {
   box-sizing: border-box;
 }
 
+a {
+  text-decoration: none;
+}
+
 .header {
   background-color: white;
   position: sticky;
   top: 0;
   z-index: 10;
-  border-bottom: 1px solid #E8E8E8;
+  border-bottom: 1px solid #e8e8e8;
 }
 
 .head {
