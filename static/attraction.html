@@ -4,6 +4,37 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Attraction</title>
+    <link rel="stylesheet" href="/static/css/index.css" />
+    <link rel="stylesheet" href="/static/css/attraction.css" />
   </head>
-  <body></body>
+  <body>
+    <div class="header">
+      <div class="head">
+        <div class="title">台北一日遊</div>
+        <div class="menu">
+          <span class="item">預定行程</span>
+          <span class="item">登入/註冊</span>
+        </div>
+      </div>
+    </div>
+    <div class="top">
+      <div class="swiper-images">
+        <img
+          class="arrow arrow-left"
+          src="/static/images/arrow-left.svg"
+          onclick="onArrowLeftClick()"
+        />
+        <div class="images"></div>
+        <img
+          class="arrow arrow-right"
+          src="/static/images/arrow-right.svg"
+          onclick="onArrowRightClick()"
+        />
+      </div>
+      <div class="booking"></div>
+    </div>
+    <div class="bottom"></div>
+    <footer>COPYRIGHT © 2024 台北一日遊</footer>
+    <script type="module" src="/static/js/attraction.js"></script>
+  </body>
 </html>
