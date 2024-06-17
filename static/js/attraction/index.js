@@ -7,10 +7,10 @@ const renderAttraction = async () => {
   const apiPath = "/api" + window.location.pathname;
 
   try {
-    const { data, error } = await fetchData(apiPath);
+    const { data, error, message } = await fetchData(apiPath);
 
     if (error) {
-      alert(attraction.message);
+      alert(message);
       window.location.href = "/";
       return;
     }
@@ -19,20 +19,21 @@ const renderAttraction = async () => {
       data;
 
     const imagesDiv = document.querySelector(".images");
-    const { onArrowRightClick, onArrowLeftClick } = ImageSlider( {imagesDiv,
+    const { onArrowRightClick, onArrowLeftClick } = ImageSlider({
+      imagesDiv,
       images
     });
 
     const bookingDiv = document.querySelector(".booking");
-    Booking({ bookingDiv,name, category, mrt });
+    Booking({ bookingDiv, name, category, mrt });
 
     const bottomDiv = document.querySelector(".bottom");
-    Info({ bottomDiv,description, address, transport });
+    Info({ bottomDiv, description, address, transport });
 
     window.onArrowRightClick = onArrowRightClick;
     window.onArrowLeftClick = onArrowLeftClick;
   } catch (error) {
-    alert(error.message);
+    console.error(error);
     window.location.href = "/";
   }
 };
