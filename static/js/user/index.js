@@ -29,6 +29,62 @@ const loadForm = async (url, formType) => {
       signupLink.onclick = () => {
         loadForm("/static/signup.html", "signup");
       };
+
+      document
+        .getElementById("loginBtn")
+        .addEventListener("click", async (event) => {
+          event.preventDefault();
+
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+
+          if (!email.trim() || !password.trim()) {
+            alert("請填寫電子郵件和密碼");
+            return;
+          }
+
+          const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailPattern.test(email)) {
+            alert("請輸入有效的電子郵件地址");
+            return;
+          }
+
+          const url = "/api/user/auth";
+          try {
+            const data = await fetchData(url, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                email: email,
+                password: password
+              })
+            });
+
+            const responseInfoDiv = document.querySelector(".response-info");
+            if (!responseInfoDiv) {
+              return;
+            }
+
+            if (data.error) {
+              responseInfoDiv.textContent = data.message;
+              responseInfoDiv.style.display = "block";
+              responseInfoDiv.style.color = "red";
+
+              setTimeout(() => {
+                responseInfoDiv.style.display = "none";
+              }, 5000);
+              return;
+            }
+
+
+            localStorage.setItem("authToken", data.token);
+          } catch (error) {
+            console.error("Error logging in:", error);
+            alert("登入失敗，請稍後再試。");
+          }
+        });
     }
 
     if (formType === "signup") {
@@ -84,7 +140,8 @@ const loadForm = async (url, formType) => {
               responseInfoDiv.textContent = "註冊成功，請登入系統";
               responseInfoDiv.style.display = "block";
               responseInfoDiv.style.color = "green";
-            } else if (data.error) {
+            }
+            if (data.error) {
               responseInfoDiv.textContent = data.message;
               responseInfoDiv.style.display = "block";
               responseInfoDiv.style.color = "red";
