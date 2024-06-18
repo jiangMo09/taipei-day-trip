@@ -34,7 +34,7 @@ class Attraction(BaseModel):
 router = APIRouter()
 
 
-@router.get("/api/attractions")
+@router.get("/attractions")
 async def get_attractions(page: int = Query(0, ge=0), keyword: str = Query(None)):
     cache_key = f"attractions_{page}_{keyword}"
 
@@ -137,7 +137,7 @@ async def get_attractions(page: int = Query(0, ge=0), keyword: str = Query(None)
             connection.close()
 
 
-@router.get("/api/attraction/{attraction_id}")
+@router.get("/attraction/{attraction_id}")
 def get_attraction(attraction_id: int):
     connection = None
     try:
@@ -179,7 +179,7 @@ def get_attraction(attraction_id: int):
             connection.close()
 
 
-@router.get("/api/mrts")
+@router.get("/mrts")
 def get_mrt():
     connection = None
     try:
