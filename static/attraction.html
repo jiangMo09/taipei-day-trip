@@ -6,6 +6,7 @@
     <title>Attraction</title>
     <link rel="stylesheet" href="/static/css/index.css" />
     <link rel="stylesheet" href="/static/css/attraction.css" />
+    <link rel="stylesheet" href="/static/css/singin.css" />
   </head>
   <body>
     <div class="header">
@@ -13,7 +14,7 @@
         <a class="title" href="/">台北一日遊</a>
         <div class="menu">
           <span class="item">預定行程</span>
-          <span class="item">登入/註冊</span>
+          <span class="item" id="login-register">登入/註冊</span>
         </div>
       </div>
     </div>
@@ -35,6 +36,8 @@
     </div>
     <div class="bottom"></div>
     <footer>COPYRIGHT © 2024 台北一日遊</footer>
+    <div id="loginDialog" class="modal"></div>
     <script type="module" src="/static/js/attraction/index.js"></script>
+    <script type="module" src="/static/js/user/index.js"></script>
   </body>
 </html>

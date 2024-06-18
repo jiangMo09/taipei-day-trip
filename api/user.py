@@ -1,7 +1,7 @@
 import datetime
 import jwt
 import secrets
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from pydantic import BaseModel, field_validator, EmailStr
 import mysql.connector
 from utils.mysql import get_db_connection, execute_query
@@ -96,3 +96,16 @@ async def authenticate_user(user: UserLogin):
     finally:
         if connection:
             connection.close()
+
+
+@router.get("/user/auth")
+async def verify_token(request: Request):
+    auth_token = request.headers.get("authToken")
+    if not auth_token:
+        return {"data": None}
+
+    try:
+        payload = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
+        return {"data": payload}
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return {"data": None}

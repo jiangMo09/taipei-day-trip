@@ -4,6 +4,13 @@ const loginRegister = document.getElementById("login-register");
 const loginDialog = document.getElementById("loginDialog");
 
 loginRegister.onclick = () => {
+  if (loginRegister.textContent === "登出系統") {
+    localStorage.removeItem("authToken");
+    checkLoginStatus();
+    location.reload();
+    return;
+  }
+
   loadForm("/static/singin.html", "login");
 };
 
@@ -78,8 +85,8 @@ const loadForm = async (url, formType) => {
               return;
             }
 
-
             localStorage.setItem("authToken", data.token);
+            location.reload();
           } catch (error) {
             console.error("Error logging in:", error);
             alert("登入失敗，請稍後再試。");
@@ -159,3 +166,30 @@ const loadForm = async (url, formType) => {
     console.error("Error fetching form:", error);
   }
 };
+
+const updateLoginRegisterText = (isLoggedIn) => {
+  if (!loginRegister) {
+    return;
+  }
+
+  loginRegister.textContent = isLoggedIn ? "登出系統" : "登入/註冊";
+};
+
+const checkLoginStatus = async () => {
+  const authToken = localStorage.getItem("authToken");
+  if (authToken) {
+    const data = await fetchData("/api/user/auth", {
+      headers: {
+        authToken: authToken
+      }
+    });
+
+    updateLoginRegisterText(data.data !== null);
+  } else {
+    updateLoginRegisterText(false);
+  }
+};
+
+window.addEventListener("load", function () {
+  checkLoginStatus();
+});
