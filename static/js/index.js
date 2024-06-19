@@ -1,3 +1,5 @@
+import { spellCdnUrl } from "./utils/spellCdnUrl.js";
+
 let nextPage = 0;
 let loading = false;
 let defaultKeyword = "";
@@ -11,7 +13,9 @@ const appendAttraction = (attraction, attractionsDiv) => {
 
   const imageDiv = document.createElement("div");
   imageDiv.classList.add("image");
-  imageDiv.style.backgroundImage = `url("${attraction.images[0]}")`;
+  imageDiv.style.backgroundImage = `url("${spellCdnUrl(
+    attraction.images[0]
+  )}")`;
 
   const nameDiv = document.createElement("div");
   nameDiv.classList.add("name");
