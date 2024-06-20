@@ -3,7 +3,7 @@ import logging
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from api import api_router
+from routers import api_router
 
 logger = logging.getLogger("app")
 file_handler = logging.FileHandler("access.log")
