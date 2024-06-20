@@ -3,8 +3,13 @@ import logging
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from api import home_router
+from dotenv import load_dotenv
+import os
+from routers import api_router
 
+load_dotenv()
+
+MY_IPS = os.getenv("MY_IPS")
 
 logger = logging.getLogger("app")
 file_handler = logging.FileHandler("access.log")
@@ -17,13 +22,15 @@ logger.setLevel(logging.INFO)
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-app.include_router(home_router)
+app.include_router(api_router)
 
 
 @app.middleware("http")
 async def log_ip_address(request: Request, call_next):
     ip_address = request.client.host
-    logger.info(f"Request from IP: {ip_address} to URL: {request.url}")
+
+    if not ip_address in MY_IPS:
+        logger.info(f"Request from IP: {ip_address} to URL: {request.url}")
     response = await call_next(request)
     return response
 

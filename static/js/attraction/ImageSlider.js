@@ -1,4 +1,5 @@
 import { createState } from "../utils/createState.js";
+import { spellCdnUrl } from "../utils/spellCdnUrl.js";
 
 const currentImageIndex = createState(0);
 const imagesCount = createState(0);
@@ -9,7 +10,7 @@ export const ImageSlider = ({ imagesDiv, images }) => {
   const appendImage = (src, index) => {
     const isFirst = index === 0;
     const img = document.createElement("img");
-    img.src = src;
+    img.src = spellCdnUrl(src);
     img.className = isFirst
       ? `image image-${index} active`
       : `image image-${index}`;

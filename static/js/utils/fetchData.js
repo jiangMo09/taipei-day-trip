@@ -1,6 +1,14 @@
-export const fetchData = async (url) => {
+export const fetchData = async (url, options = {}) => {
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      method: options.method || "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers
+      },
+      ...options
+    });
+
     const data = await response.json();
     return data;
   } catch (err) {
