@@ -159,6 +159,8 @@ const attachEventListeners = () => {
   });
 };
 
+window.onSearchBtnClick = onSearchBtnClick;
+
 window.addEventListener("load", function () {
   getMRTs();
   getAttractions();
