@@ -6,7 +6,9 @@ from pydantic import BaseModel, field_validator, EmailStr
 import mysql.connector
 from utils.mysql import get_db_connection, execute_query
 from passlib.context import CryptContext
+from utils.logger_api import setup_logger
 
+logger = setup_logger("api.user", "app.log")
 
 secret_key = secrets.token_bytes(32)
 
@@ -54,6 +56,7 @@ async def signup(user: UserSignup):
         execute_query(connection, query, (user.name, user.email, hashed_password))
         return {"ok": True}
     except mysql.connector.Error as err:
+        logger.error("註冊錯誤:%s", err)
         return {"error": True, "message": str(err)}
     finally:
         if connection:
@@ -92,6 +95,7 @@ async def authenticate_user(user: UserLogin):
         jwt_token = jwt.encode(payload, secret_key, algorithm="HS256")
         return {"token": jwt_token}
     except mysql.connector.Error as err:
+        logger.error("登入錯誤:%s", err)
         return {"error": True, "message": str(err)}
     finally:
         if connection:
@@ -107,5 +111,6 @@ async def verify_token(request: Request):
     try:
         payload = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
         return {"data": payload}
-    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError) as err:
+        logger.error("jwt 驗證錯誤:%s", err)
         return {"data": None}
