@@ -8,41 +8,6 @@ a {
   text-decoration: none;
 }
 
-.header {
-  background-color: white;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  border-bottom: 1px solid #e8e8e8;
-}
-
-.head {
-  max-width: 1200px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: auto;
-  padding: 10px;
-
-  .title {
-    color: #448899;
-    font-size: 30px;
-    line-height: 34px;
-    font-weight: 700;
-  }
-
-  .menu {
-    font-size: 16px;
-    font-weight: 500;
-    color: #666666;
-
-    .item {
-      padding: 10px;
-      cursor: pointer;
-    }
-  }
-}
-
 .banner {
   background-image: url("/static/images/welcome.svg");
   background-size: cover;
