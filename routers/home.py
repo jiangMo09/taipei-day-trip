@@ -8,14 +8,10 @@ import mysql.connector
 import redis.exceptions
 from utils.mysql import get_db_connection, execute_query
 from utils.redis_client import async_redis_client
+from utils.logger_api import setup_logger
 
 
-logger = logging.getLogger("api.home")
-file_handler = logging.FileHandler("app.log")
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-logger.setLevel(logging.INFO)
+logger = setup_logger("api.home", "app.log")
 
 
 class Attraction(BaseModel):
