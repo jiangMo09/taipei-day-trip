@@ -36,3 +36,13 @@ a {
     }
   }
 }
+
+footer {
+  font-weight: 700;
+  background-color: #757575;
+  color: white;
+  height: 104px;
+  width: 100%;
+  text-align: center;
+  line-height: 104px;
+}
