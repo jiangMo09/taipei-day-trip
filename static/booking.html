@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Booking</title>
+    <link rel="stylesheet" href="/static/css/header-footer.css" />
+    <link rel="stylesheet" href="/static/css/singin.css" />
   </head>
   <body>
     <div>您好，<span class="user-name">Yakko</span>，待預訂的行程如下：</div>
@@ -34,13 +36,13 @@
     <div class="contact">
       <div class="title">您的聯絡資訊</div>
       <label for="name">聯絡姓名：</label>
-      <input type="text" id="name" required />
+      <input type="text" id="contact-name" required />
       <br />
       <label for="email">聯絡信箱：</label>
-      <input type="email" id="email" required />
+      <input type="email" id="contact-email" required />
       <br />
       <label for="phone">手機號碼：</label>
-      <input type="tel" id="phone" required />
+      <input type="tel" id="contact-phone" required />
       <div class="note">
         請保持手機暢通，準時到達，導覽人員將用手機與您聯繫，務必留下正確的聯絡方式。
       </div>
@@ -80,5 +82,8 @@
       <div>總價：新台幣 2000 元</div>
       <div>確認訂購並付款</div>
     </div>
+    <footer>COPYRIGHT © 2024 台北一日遊</footer>
+    <div id="loginDialog" class="modal"></div>
   </body>
+  <script type="module" src="/static/js/share/user.js"></script>
 </html>
