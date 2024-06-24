@@ -6,81 +6,94 @@
     <title>Booking</title>
     <link rel="stylesheet" href="/static/css/header-footer.css" />
     <link rel="stylesheet" href="/static/css/singin.css" />
+    <link rel="stylesheet" href="/static/css/booking.css" />
   </head>
   <body>
-    <div>您好，<span class="user-name">Yakko</span>，待預訂的行程如下：</div>
-    <div class="schedules">
-      <div class="schedule">
-        <div class="image">
-          <img
-            src="https://dal3kbb5hx215.cloudfront.net/frost-9028-2560x1600.jpg"
-          />
-        </div>
-        <div class="info">
-          <div class="detail">
-            <div class="title">
-              <span>台北一日遊：</span> <span>平安鐘</span>
+    <div class="booking-page">
+      <div class="welcome-title font-weight-700">
+        您好，<span class="user-name">Yakko</span>，待預訂的行程如下：
+      </div>
+      <div class="schedules booking-info">
+        <div class="schedule">
+          <div class="image">
+            <img
+              src="https://dal3kbb5hx215.cloudfront.net/frost-9028-2560x1600.jpg"
+            />
+          </div>
+          <div class="info">
+            <div class="detail">
+              <div class="title font-weight-700">
+                <div><span>台北一日遊：</span> <span>平安鐘</span></div>
+              </div>
+              <div class="date">
+                <span class="font-weight-700">日期：</span> <span>平安鐘</span>
+              </div>
+              <div class="time">
+                <span class="font-weight-700">時間：</span> <span>平安鐘</span>
+              </div>
+              <div class="cost">
+                <span class="font-weight-700">費用：</span> <span>平安鐘</span>
+              </div>
+              <div class="place">
+                <span class="font-weight-700">地點：</span> <span>平安鐘</span>
+              </div>
             </div>
-            <div class="date"><span>日期：</span> <span>平安鐘</span></div>
-            <div class="time"><span>時間：</span> <span>平安鐘</span></div>
-            <div class="cost"><span>費用：</span> <span>平安鐘</span></div>
-            <div class="place"><span>地點：</span> <span>平安鐘</span></div>
-          </div>
-          <div class="delete">
-            <img class="icon-trash" src="/static/images/delete.svg" />
+            <div class="delete">
+              <img src="/static/images/delete.svg" />
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <hr />
-    <div class="contact">
-      <div class="title">您的聯絡資訊</div>
-      <label for="name">聯絡姓名：</label>
-      <input type="text" id="contact-name" required />
-      <br />
-      <label for="email">聯絡信箱：</label>
-      <input type="email" id="contact-email" required />
-      <br />
-      <label for="phone">手機號碼：</label>
-      <input type="tel" id="contact-phone" required />
-      <div class="note">
-        請保持手機暢通，準時到達，導覽人員將用手機與您聯繫，務必留下正確的聯絡方式。
+      <hr />
+      <div class="contact booking-info">
+        <div class="title font-weight-700">您的聯絡資訊</div>
+        <label for="name">聯絡姓名：</label>
+        <input type="text" id="contact-name" required />
+        <br />
+        <label for="email">聯絡信箱：</label>
+        <input type="email" id="contact-email" required />
+        <br />
+        <label for="phone">手機號碼：</label>
+        <input type="tel" id="contact-phone" required />
+        <div class="note font-weight-700">
+          請保持手機暢通，準時到達，導覽人員將用手機與您聯繫，務必留下正確的聯絡方式。
+        </div>
       </div>
-    </div>
-    <hr />
-    <div class="credit-card-payment">
-      <div class="title">信用卡付款資訊</div>
-      <label for="credit-card-number">卡片號碼：</label>
-      <input
-        type="text"
-        id="credit-card-number"
-        placeholder="1234 1234 1234 1234"
-        maxlength="16"
-        required
-      />
-      <br />
-      <label for="credit-card-date">過期時間：</label>
-      <input
-        type="text"
-        id="credit-card-date"
-        placeholder="10/25"
-        maxlength="5"
-        required
-      />
-      <br />
-      <label for="credit-card-csv">驗證密碼：</label>
-      <input
-        type="text"
-        id="credit-card-csv"
-        placeholder="123"
-        maxlength="3"
-        required
-      />
-    </div>
-    <hr />
-    <div class="order">
-      <div>總價：新台幣 2000 元</div>
-      <div>確認訂購並付款</div>
+      <hr />
+      <div class="credit-card-payment booking-info">
+        <div class="title font-weight-700">信用卡付款資訊</div>
+        <label for="credit-card-number">卡片號碼：</label>
+        <input
+          type="text"
+          id="credit-card-number"
+          placeholder="**** **** **** ****"
+          maxlength="16"
+          required
+        />
+        <br />
+        <label for="credit-card-date">過期時間：</label>
+        <input
+          type="text"
+          id="credit-card-date"
+          placeholder="MM / YY"
+          maxlength="5"
+          required
+        />
+        <br />
+        <label for="credit-card-csv">驗證密碼：</label>
+        <input
+          type="text"
+          id="credit-card-csv"
+          placeholder="CVV"
+          maxlength="3"
+          required
+        />
+      </div>
+      <hr />
+      <div class="confirm-order booking-info">
+        <div class="font-weight-700">總價：新台幣 2000 元</div>
+        <div class="submit">確認訂購並付款</div>
+      </div>
     </div>
     <footer>COPYRIGHT © 2024 台北一日遊</footer>
     <div id="loginDialog" class="modal"></div>
