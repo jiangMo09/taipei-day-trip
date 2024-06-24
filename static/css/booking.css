@@ -136,6 +136,7 @@ input {
     font-size: 19px;
     line-height: 16px;
     margin-top: 22px;
+    cursor: pointer;
   }
 }
 
