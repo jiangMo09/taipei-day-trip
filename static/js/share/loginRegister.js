@@ -127,7 +127,12 @@ const loadForm = async (url, formType, loginDialog) => {
   }
 };
 
-export const handleLoginRegister = (loginRegister, loginDialog) => {
+export const handleLoginRegister = (loginRegister, loginDialog, showSingIn) => {
+  if (showSingIn) {
+    loadForm("/static/share/singin.html", "login", loginDialog);
+    return;
+  }
+
   loginRegister.onclick = () => {
     if (loginRegister.textContent !== "登出系統") {
       loadForm("/static/share/singin.html", "login", loginDialog);
