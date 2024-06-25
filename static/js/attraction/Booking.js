@@ -1,26 +1,9 @@
 import { fetchData } from "../utils/fetchData.js";
 import { handleLoginRegister } from "../share/loginRegister.js";
-import { createState } from "../utils/createState.js";
+import { isLoggedIn } from "../share/user.js";
 
 const MORNING_COST = 2000;
 const AFTERNOON_COST = 2500;
-
-const isLoggedIn = createState(false);
-
-const checkLoginStatus = async () => {
-  const authToken = localStorage.getItem("authToken");
-  if (!authToken) return false;
-
-  try {
-    const data = await fetchData("/api/user/auth", {
-      headers: { authToken }
-    });
-    return data.data !== null;
-  } catch (error) {
-    console.error("Error checking login status:", error);
-    return false;
-  }
-};
 
 const createBookingHTML = (name, category, mrt) => `
   <div class="title">${name}</div>
@@ -51,11 +34,8 @@ const createBookingHTML = (name, category, mrt) => `
   </div>
 `;
 
-export const Booking = async ({ bookingDiv, name, category, mrt }) => {
+export const booking = async ({ bookingDiv, name, category, mrt }) => {
   bookingDiv.innerHTML = createBookingHTML(name, category, mrt);
-
-  const loginStatus = await checkLoginStatus();
-  isLoggedIn.setState(loginStatus);
 
   const loginRegister = document.getElementById("login-register");
   const loginDialog = document.getElementById("loginDialog");
@@ -81,6 +61,7 @@ export const Booking = async ({ bookingDiv, name, category, mrt }) => {
       alert("authToken 無效或不存在，請重新登入");
       return;
     }
+
     if (!attractionId || isNaN(attractionId)) {
       alert("景點無效或不存在");
       return;

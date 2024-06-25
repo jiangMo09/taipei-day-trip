@@ -3,7 +3,7 @@ import { loadHeader } from "./header.js";
 import { handleLoginRegister } from "./loginRegister.js";
 import { createState } from "../utils/createState.js";
 
-const isLoggedIn = createState(false);
+export const isLoggedIn = createState(false);
 
 const checkLoginStatus = async (loginRegister) => {
   const authToken = localStorage.getItem("authToken");
