@@ -64,12 +64,23 @@ export const Booking = async ({ bookingDiv, name, category, mrt }) => {
   );
   const timeRadios = bookingDiv.querySelectorAll('input[name="time"]');
 
-  const handleBooking = () => {
-    if (isLoggedIn.getState()) {
-      alert("post");
-    } else {
+  const handleBooking = async () => {
+    if (!isLoggedIn.getState()) {
       handleLoginRegister(loginRegister, loginDialog, true);
+      return;
     }
+
+    const authToken = localStorage.getItem("authToken");
+    const data = await fetchData("/api/booking", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", authToken: authToken },
+      body: JSON.stringify({
+        attractionId: 10,
+        date: "2022-01-31",
+        time: "afternoon",
+        price: 2500
+      })
+    });
   };
 
   const updateCost = (event) => {
