@@ -14,11 +14,30 @@ const renderBooking = async () => {
     document.querySelector("#contact-email").value = decodedPayload.email;
 
     const schedulesContainer = document.querySelector(".schedules");
+    const contactContainer = document.querySelector(".contact");
+    const paymentContainer = document.querySelector(".credit-card-payment");
+    const confirmOrderContainer = document.querySelector(".confirm-order");
+    const hrElements = document.querySelectorAll("hr");
+    const footerElements = document.querySelector("footer");
 
+    if (!data || data.length === 0) {
+      const noBookingsMessage = document.createElement("div");
+      noBookingsMessage.textContent = "目前沒有任何待預訂的行程";
+      schedulesContainer.appendChild(noBookingsMessage);
+
+      contactContainer.style.display = "none";
+      paymentContainer.style.display = "none";
+      confirmOrderContainer.style.display = "none";
+      footerElements.style.position = "fixed";
+      footerElements.style.bottom = 0;
+      hrElements.forEach((hr) => (hr.style.display = "none"));
+      return;
+    }
+    let totalCost = 0;
     data.forEach((item) => {
       const scheduleElement = document.createElement("div");
       scheduleElement.classList.add("schedule");
-
+      totalCost += item.price;
       scheduleElement.innerHTML = `
         <div class="image">
           <img src="${item.attraction.image}" />
@@ -56,6 +75,7 @@ const renderBooking = async () => {
 
       schedulesContainer.appendChild(scheduleElement);
     });
+    document.querySelector(".total-cost").textContent = totalCost;
   } catch (error) {
     console.error(error);
   }

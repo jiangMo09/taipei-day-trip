@@ -111,9 +111,7 @@ async def get_booking(request: Request):
             connection, query, (payload["id"],), fetch_method="fetchall"
         )
         if not existing_bookings:
-            return JSONResponse(
-                status_code=status.HTTP_403_FORBIDDEN, content={"查無此行程，拒絕存取"}
-            )
+            return JSONResponse(status_code=status.HTTP_200_OK, content={"data": None})
 
         formatted_bookings = []
         for booking in existing_bookings:
