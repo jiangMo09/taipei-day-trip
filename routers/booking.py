@@ -34,7 +34,7 @@ async def create_booking(request: Request, booking: Booking):
             content={"error": True, "message": "未登入系統，拒絕存取"},
         )
 
-    if not (booking.time == "morning" or booking.time_of_day == "afternoon"):
+    if not (booking.time == "morning" or booking.time == "afternoon"):
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={"error": True, "message": "旅程只有早上或是下午"},

@@ -31,17 +31,17 @@ const createBookingHTML = (name, category, mrt) => `
     <div class="title">訂購導覽行程</div>
     <div class="description">以此景點為中心的一日行程，帶您探索城市角落故事</div>
     <div class="date">
-      選擇日期：<input type="date" />
+      選擇日期：<input id="dateInput" type="date" />
     </div>
     <div class="time">
       選擇時間：
       <label class="custom-radio">
-        <input type="radio" name="time" value="morning" checked />
+        <input  id="morningRadio" type="radio" name="time" value="morning" checked />
         <span class="radio-checkmark"></span>
         <span class="label-text">上半天</span>
       </label>
       <label class="custom-radio">
-        <input type="radio" name="time" value="afternoon" />
+        <input id="afternoonRadio" type="radio" name="time" value="afternoon" />
         <span class="radio-checkmark"></span>
         <span class="label-text">下半天</span>
       </label>
@@ -71,16 +71,44 @@ export const Booking = async ({ bookingDiv, name, category, mrt }) => {
     }
 
     const authToken = localStorage.getItem("authToken");
+    const attractionId = window.location.pathname.split("/")[2];
+    const date = document.getElementById("dateInput").value;
+    const morningRadio = document.getElementById("morningRadio").checked;
+    const time = morningRadio ? "morning" : "afternoon";
+    const price = morningRadio ? 2000 : 2500;
+
+    if (!authToken) {
+      alert("authToken 無效或不存在，請重新登入");
+      return;
+    }
+    if (!attractionId || isNaN(attractionId)) {
+      alert("景點無效或不存在");
+      return;
+    }
+
+    if (!date || new Date(date) <= new Date()) {
+      alert("日期未選擇、無效或是過去時間");
+      return;
+    }
+
     const data = await fetchData("/api/booking", {
       method: "POST",
       headers: { "Content-Type": "application/json", authToken: authToken },
       body: JSON.stringify({
-        attractionId: 10,
-        date: "2022-01-31",
-        time: "afternoon",
-        price: 2500
+        attractionId: attractionId,
+        date: date,
+        time: time,
+        price: price
       })
     });
+
+    if (data.error) {
+      alert(data.message);
+      return;
+    }
+
+    window.location.href = "/booking";
+    return;
   };
 
   const updateCost = (event) => {
