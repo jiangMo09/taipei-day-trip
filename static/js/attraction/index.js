@@ -1,6 +1,6 @@
 import { fetchData } from "../utils/fetchData.js";
 import { ImageSlider } from "./ImageSlider.js";
-import { booking } from "./booking.js";
+import { booking } from "./book.js";
 import { Info } from "./Info.js";
 
 const renderAttraction = async () => {
