@@ -1,8 +1,34 @@
 import { fetchData } from "../utils/fetchData.js";
 import { decodeJWT } from "../utils/decodeJwt.js";
+
+const deleteBooking = async (bookingId) => {
+  const authToken = localStorage.getItem("authToken");
+  if (!authToken) {
+    return;
+  }
+
+  try {
+    const { error, message } = await fetchData(`/api/booking/${bookingId}`, {
+      method: "DELETE",
+      headers: { authToken }
+    });
+
+    if (error) {
+      alert(message);
+      return;
+    }
+    location.reload();
+  } catch (error) {
+    console.error("刪除預訂失敗:", error);
+  }
+};
+
 const renderBooking = async () => {
   const authToken = localStorage.getItem("authToken");
-  if (!authToken) return false;
+  if (!authToken) {
+    return;
+  }
+
   const decodedPayload = decodeJWT(authToken);
   try {
     const { data } = await fetchData("/api/booking", {
@@ -38,6 +64,7 @@ const renderBooking = async () => {
       const scheduleElement = document.createElement("div");
       scheduleElement.classList.add("schedule");
       totalCost += item.price;
+
       scheduleElement.innerHTML = `
         <div class="image">
           <img src="${item.attraction.image}" />
@@ -67,7 +94,7 @@ const renderBooking = async () => {
               <span class="place-value">${item.attraction.address}</span>
             </div>
           </div>
-          <div class="delete">
+          <div class="delete" data-item-id="${item.id}">
             <img src="/static/images/delete.svg" />
           </div>
         </div>
@@ -76,6 +103,10 @@ const renderBooking = async () => {
       schedulesContainer.appendChild(scheduleElement);
     });
     document.querySelector(".total-cost").textContent = totalCost;
+    document.querySelectorAll(".delete").forEach((deleteButton) => {
+      const itemId = deleteButton.dataset.itemId;
+      deleteButton.addEventListener("click", () => deleteBooking(itemId));
+    });
   } catch (error) {
     console.error(error);
   }

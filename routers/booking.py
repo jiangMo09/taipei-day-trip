@@ -1,8 +1,6 @@
 from fastapi import APIRouter, Request, HTTPException, Header, status
 from pydantic import BaseModel, ValidationError, validator
 from datetime import date
-from dotenv import load_dotenv
-import os
 import mysql.connector
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -10,8 +8,6 @@ from utils.logger_api import setup_logger
 from utils.get_jwt_payload import get_jwt_payload
 from utils.mysql import get_db_connection, execute_query
 
-load_dotenv()
-secret_key = os.getenv("JWT_SECRET_KEY")
 
 router = APIRouter()
 logger = setup_logger("api.booking", "app.log")
@@ -100,7 +96,7 @@ async def get_booking(request: Request):
     try:
         connection = get_db_connection()
         query = """
-            SELECT BOOKING.attraction_id, ATTRACTIONS.name, ATTRACTIONS.address, 
+            SELECT BOOKING.id, BOOKING.attraction_id, ATTRACTIONS.name, ATTRACTIONS.address, 
                    (SELECT url FROM IMAGES WHERE attraction_id = ATTRACTIONS.id LIMIT 1) AS image,
                    BOOKING.date, BOOKING.time_of_day, BOOKING.price
             FROM BOOKING
@@ -110,12 +106,14 @@ async def get_booking(request: Request):
         existing_bookings = execute_query(
             connection, query, (payload["id"],), fetch_method="fetchall"
         )
+
         if not existing_bookings:
             return JSONResponse(status_code=status.HTTP_200_OK, content={"data": None})
 
         formatted_bookings = []
         for booking in existing_bookings:
             formatted_booking = {
+                "id": booking["id"],
                 "attraction": {
                     "id": booking["attraction_id"],
                     "name": booking["name"],
@@ -131,6 +129,46 @@ async def get_booking(request: Request):
         return JSONResponse(
             status_code=status.HTTP_200_OK, content={"data": formatted_bookings}
         )
+    except mysql.connector.Error as err:
+        logger.error("伺服器內部錯誤:%s", err)
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"error": True, "message": str(err)},
+        )
+    finally:
+        if connection:
+            connection.close()
+
+
+@router.delete("/booking/{booking_id}")
+async def delete_booking(request: Request, booking_id: int):
+    auth_token = request.headers.get("authToken")
+
+    payload = get_jwt_payload(auth_token)
+    if not payload:
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={"error": True, "message": "未登入系統，拒絕存取"},
+        )
+
+    connection = None
+    try:
+        connection = get_db_connection()
+        query = """
+            DELETE FROM BOOKING WHERE id = %s AND user_id =%s;
+        """
+        existing_bookings = execute_query(
+            connection,
+            query,
+            (
+                booking_id,
+                payload["id"],
+            ),
+            fetch_method="fetchone",
+        )
+        if not existing_bookings:
+            return JSONResponse(status_code=status.HTTP_200_OK, content={"ok": True})
+
     except mysql.connector.Error as err:
         logger.error("伺服器內部錯誤:%s", err)
         return JSONResponse(
