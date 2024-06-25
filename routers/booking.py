@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Request
-from utils.logger_api import setup_logger
-from dotenv import load_dotenv
+from fastapi import APIRouter, Request, HTTPException, Header, status
+from pydantic import BaseModel, ValidationError, validator
 from datetime import date
-from pydantic import BaseModel
+from dotenv import load_dotenv
 import os
-import json
 import mysql.connector
+from fastapi.responses import JSONResponse
+from utils.logger_api import setup_logger
 from utils.get_jwt_payload import get_jwt_payload
 from utils.mysql import get_db_connection, execute_query
 
@@ -29,14 +29,23 @@ async def create_booking(request: Request, booking: Booking):
 
     payload = get_jwt_payload(auth_token)
     if not payload:
-        return {"error": True, "message": "未登入系統，拒絕存取"}
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={"error": True, "message": "未登入系統，拒絕存取"},
+        )
 
     if not (booking.time == "morning" or booking.time_of_day == "afternoon"):
-        return {"error": True, "message": "旅程只有早上或是下午"}
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"error": True, "message": "旅程只有早上或是下午"},
+        )
 
     today = date.today()
     if booking.date <= today:
-        return {"error": True, "message": "訂單日期必須是未來的日期"}
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"error": True, "message": "訂單日期必須是未來的日期"},
+        )
 
     connection = None
     try:
@@ -46,7 +55,10 @@ async def create_booking(request: Request, booking: Booking):
             connection, query, (booking.attractionId,), fetch_method="fetchone"
         )
         if not existing_attractions:
-            return {"error": True, "message": "查無此景點"}
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"error": True, "message": "查無此景點"},
+            )
 
         query = "INSERT INTO BOOKING (attraction_id, user_id, time_of_day, date, price) VALUES (%s, %s, %s, %s, %s)"
         execute_query(
@@ -63,7 +75,10 @@ async def create_booking(request: Request, booking: Booking):
         return {"ok": True}
     except mysql.connector.Error as err:
         logger.error("伺服器內部錯誤:%s", err)
-        return {"error": True, "message": str(err)}
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"error": True, "message": str(err)},
+        )
     finally:
         if connection:
             connection.close()
