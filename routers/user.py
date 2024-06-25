@@ -1,16 +1,18 @@
 import datetime
 import jwt
-import secrets
 from fastapi import APIRouter, Request
 from pydantic import BaseModel, field_validator, EmailStr
 import mysql.connector
 from utils.mysql import get_db_connection, execute_query
 from passlib.context import CryptContext
 from utils.logger_api import setup_logger
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+secret_key = os.getenv("JWT_SECRET_KEY")
 
 logger = setup_logger("api.user", "app.log")
-
-secret_key = secrets.token_bytes(32)
 
 router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
