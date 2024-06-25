@@ -1,6 +1,6 @@
 import { fetchData } from "../utils/fetchData.js";
 import { ImageSlider } from "./ImageSlider.js";
-import { Booking } from "./Booking.js";
+import { booking } from "./booking.js";
 import { Info } from "./Info.js";
 
 const renderAttraction = async () => {
@@ -25,7 +25,7 @@ const renderAttraction = async () => {
     });
 
     const bookingDiv = document.querySelector(".booking");
-    Booking({ bookingDiv, name, category, mrt });
+    booking({ bookingDiv, name, category, mrt });
 
     const bottomDiv = document.querySelector(".bottom");
     Info({ bottomDiv, description, address, transport });

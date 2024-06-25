@@ -14,6 +14,5 @@ export const fetchData = async (url, options = {}) => {
   } catch (err) {
     console.error(`Error fetching ${url}:`, err);
     alert("遇到了某些問題，請聯繫工程師");
-    window.location.href = "/";
   }
 };

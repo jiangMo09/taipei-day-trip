@@ -4,6 +4,72 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Booking</title>
+    <link rel="stylesheet" href="/static/css/header-footer.css" />
+    <link rel="stylesheet" href="/static/css/singin.css" />
+    <link rel="stylesheet" href="/static/css/booking.css" />
   </head>
-  <body></body>
+  <body>
+    <div class="booking-page">
+      <div class="welcome-title font-weight-700">
+        您好，<span class="user-name"></span>，待預訂的行程如下：
+      </div>
+      <div class="schedules booking-info"></div>
+      <hr />
+      <div class="contact booking-info">
+        <div class="title font-weight-700">您的聯絡資訊</div>
+        <label for="name">聯絡姓名：</label>
+        <input type="text" id="contact-name" required />
+        <br />
+        <label for="email">聯絡信箱：</label>
+        <input type="email" id="contact-email" required />
+        <br />
+        <label for="phone">手機號碼：</label>
+        <input type="tel" id="contact-phone" required />
+        <div class="note font-weight-700">
+          請保持手機暢通，準時到達，導覽人員將用手機與您聯繫，務必留下正確的聯絡方式。
+        </div>
+      </div>
+      <hr />
+      <div class="credit-card-payment booking-info">
+        <div class="title font-weight-700">信用卡付款資訊</div>
+        <label for="credit-card-number">卡片號碼：</label>
+        <input
+          type="text"
+          id="credit-card-number"
+          placeholder="**** **** **** ****"
+          maxlength="16"
+          required
+        />
+        <br />
+        <label for="credit-card-date">過期時間：</label>
+        <input
+          type="text"
+          id="credit-card-date"
+          placeholder="MM / YY"
+          maxlength="5"
+          required
+        />
+        <br />
+        <label for="credit-card-csv">驗證密碼：</label>
+        <input
+          type="text"
+          id="credit-card-csv"
+          placeholder="CVV"
+          maxlength="3"
+          required
+        />
+      </div>
+      <hr />
+      <div class="confirm-order booking-info">
+        <div class="font-weight-700">
+          總價：新台幣 <span class="total-cost"></span> 元
+        </div>
+        <div class="submit">確認訂購並付款</div>
+      </div>
+    </div>
+    <footer>COPYRIGHT © 2024 台北一日遊</footer>
+    <div id="loginDialog" class="modal"></div>
+  </body>
+  <script type="module" src="/static/js/share/user.js"></script>
+  <script type="module" src="/static/js/booking/index.js"></script>
 </html>
