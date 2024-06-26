@@ -6,11 +6,8 @@ import jwt
 from fastapi.responses import JSONResponse
 from utils.logger_api import setup_logger
 from utils.mysql import get_db_connection, execute_query
-from dotenv import load_dotenv
-import os
+from utils.load_env import JWT_SECRET_KEY
 
-load_dotenv()
-secret_key = os.getenv("JWT_SECRET_KEY")
 
 router = APIRouter()
 logger = setup_logger("api.booking", "app.log")
@@ -27,7 +24,7 @@ class Booking(BaseModel):
 async def create_booking(request: Request, booking: Booking):
     auth_token = request.headers.get("authToken")
 
-    payload = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
+    payload = jwt.decode(auth_token, JWT_SECRET_KEY, algorithms=["HS256"])
     if not payload:
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -88,7 +85,7 @@ async def create_booking(request: Request, booking: Booking):
 async def get_booking(request: Request):
     auth_token = request.headers.get("authToken")
 
-    payload = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
+    payload = jwt.decode(auth_token, JWT_SECRET_KEY, algorithms=["HS256"])
     if not payload:
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -147,7 +144,7 @@ async def get_booking(request: Request):
 async def delete_booking(request: Request, booking_id: int):
     auth_token = request.headers.get("authToken")
 
-    payload = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
+    payload = jwt.decode(auth_token, JWT_SECRET_KEY, algorithms=["HS256"])
     if not payload:
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,

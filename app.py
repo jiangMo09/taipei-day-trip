@@ -3,13 +3,9 @@ import logging
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from dotenv import load_dotenv
-import os
 from routers import api_router
+from utils.load_env import MY_IPS
 
-load_dotenv()
-
-MY_IPS = os.getenv("MY_IPS")
 
 logger = logging.getLogger("app")
 file_handler = logging.FileHandler("access.log")

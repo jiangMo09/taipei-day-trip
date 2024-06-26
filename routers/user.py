@@ -6,11 +6,8 @@ import mysql.connector
 from utils.mysql import get_db_connection, execute_query
 from passlib.context import CryptContext
 from utils.logger_api import setup_logger
-from dotenv import load_dotenv
-import os
+from utils.load_env import JWT_SECRET_KEY
 
-load_dotenv()
-secret_key = os.getenv("JWT_SECRET_KEY")
 
 logger = setup_logger("api.user", "app.log")
 
@@ -94,7 +91,7 @@ async def authenticate_user(user: UserLogin):
             "email": user.email,
             "exp": expiration_time,
         }
-        jwt_token = jwt.encode(payload, secret_key, algorithm="HS256")
+        jwt_token = jwt.encode(payload, JWT_SECRET_KEY, algorithm="HS256")
         return {"token": jwt_token}
     except mysql.connector.Error as err:
         logger.error("登入錯誤:%s", err)
@@ -111,7 +108,7 @@ async def verify_token(request: Request):
         return {"data": None}
 
     try:
-        payload = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
+        payload = jwt.decode(auth_token, JWT_SECRET_KEY, algorithms=["HS256"])
         return {"data": payload}
     except (jwt.ExpiredSignatureError, jwt.InvalidTokenError) as err:
         logger.error("jwt 驗證錯誤:%s", err)
