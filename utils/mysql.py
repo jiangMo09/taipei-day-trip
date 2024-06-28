@@ -1,14 +1,12 @@
 import mysql.connector
-from dotenv import load_dotenv
-import os
+from utils.load_env import HOST, USER, PASSWORD, NAME
 
-load_dotenv()
 
 dbconfig = {
-    "host": os.getenv("DB_HOST"),
-    "user": os.getenv("DB_USER"),
-    "password": os.getenv("DB_PASSWORD"),
-    "database": os.getenv("DB_NAME"),
+    "host": HOST,
+    "user": USER,
+    "password": PASSWORD,
+    "database": NAME,
 }
 
 pool = mysql.connector.pooling.MySQLConnectionPool(
