@@ -1,13 +1,15 @@
-from fastapi import APIRouter, Request, status
-from pydantic import BaseModel
 from datetime import date
-import mysql.connector
-import jwt
+import random
+
+from fastapi import APIRouter, Request, status
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+import jwt
+import mysql.connector
+
 from utils.logger_api import setup_logger
 from utils.mysql import get_db_connection, execute_query
 from utils.load_env import JWT_SECRET_KEY
-
 
 router = APIRouter()
 logger = setup_logger("api.booking", "app.log")
@@ -57,13 +59,50 @@ async def create_booking(request: Request, booking: Booking):
                 content={"error": True, "message": "查無此景點"},
             )
 
-        query = "INSERT INTO BOOKING (attraction_id, user_id, time_of_day, date, price) VALUES (%s, %s, %s, %s, %s)"
+        order_number = None
+        query = "SELECT order_number FROM ORDERS WHERE user_id = %s AND status = 0"
+        existing_order = execute_query(
+            connection, query, (payload["id"],), fetch_method="fetchone"
+        )
+
+        if existing_order:
+            print("existing_orderexisting_order", existing_order)
+            order_number = existing_order["order_number"]
+        else:
+            insert_success = False
+            max_attempts = 5
+            attempts = 0
+
+            while not insert_success and attempts < max_attempts:
+                order_number = "".join([str(random.randint(0, 9)) for _ in range(14)])
+                query = "INSERT INTO ORDERS (order_number, user_id, status) VALUES (%s, %s, 0)"
+                try:
+                    execute_query(connection, query, (order_number, payload["id"]))
+                    insert_success = True
+                except mysql.connector.IntegrityError as err:
+                    if "Duplicate entry" in str(err):
+                        attempts += 1
+                        continue
+                    else:
+                        raise err
+
+            if not insert_success:
+                return JSONResponse(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    content={
+                        "error": True,
+                        "message": "無法生成唯一的訂單號，請稍後再試",
+                    },
+                )
+
+        query = "INSERT INTO BOOKING (attraction_id, user_id, order_number, time_of_day, date, price) VALUES (%s, %s, %s, %s, %s, %s)"
         execute_query(
             connection,
             query,
             (
                 booking.attractionId,
                 payload["id"],
+                order_number,
                 booking.time,
                 booking.date,
                 booking.price,
