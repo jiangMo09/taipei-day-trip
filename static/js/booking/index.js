@@ -169,30 +169,74 @@ const TPDirectCardSetupAndCheck = async () => {
     }
 
     const { name, email, phone } = contactInfo;
-    let prim = "";
 
     TPDirect.card.getPrime(async (result) => {
       if (result.status !== 0) {
-        alert("get prime error " + result.msg);
+        alert("獲取 prime 失敗: " + result.msg);
         return;
       }
 
       try {
         const authToken = localStorage.getItem("authToken");
         if (!authToken) {
+          alert("未登錄，請先登錄");
           return;
         }
 
+        const totalPrice = parseInt(
+          document.querySelector(".total-cost").textContent
+        );
+
+        const trips = Array.from(document.querySelectorAll(".schedule")).map(
+          (schedule) => {
+            return {
+              attraction: {
+                id: parseInt(schedule.querySelector(".delete").dataset.itemId),
+                name: schedule.querySelector(".attraction").textContent,
+                address: schedule.querySelector(".place-value").textContent,
+                image: schedule.querySelector("img").src
+              },
+              date: schedule.querySelector(".date-value").textContent,
+              time: schedule
+                .querySelector(".time-value")
+                .textContent.toLowerCase()
+            };
+          }
+        );
+
+        const contactInfo = checkUserInfo();
+        if (!contactInfo) {
+          return;
+        }
+
+        const requestBody = {
+          prime: result.card.prime,
+          order: {
+            price: totalPrice,
+            trips: trips,
+            contact: {
+              name: name,
+              email: email,
+              phone: phone
+            }
+          }
+        };
+
         const response = await fetchData(`/api/orders`, {
           method: "POST",
-          headers: { authToken: authToken, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name,
-            email,
-            phone,
-            prime: result.card.prime
-          })
+          headers: {
+            authToken: authToken,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(requestBody)
         });
+
+        if (response.error) {
+          alert(`訂單創建失敗: ${response.message || "未知錯誤"}`);
+          console.error("訂單創建失敗:", response);
+        } else {
+          alert("訂單創建成功！");
+        }
       } catch (error) {
         console.error("付款失敗:", error);
         alert("訂單創建失敗，請稍後再試");

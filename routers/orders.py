@@ -1,10 +1,7 @@
-from datetime import date
-from typing import Any, Dict, List, Optional
-import random
-
 from fastapi import APIRouter, Request, status
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
+from typing import List
 import jwt
 import mysql.connector
 
@@ -16,15 +13,38 @@ router = APIRouter()
 logger = setup_logger("api.orders", "app.log")
 
 
-class Order(BaseModel):
-    prime: str
+class Attraction(BaseModel):
+    id: int
+    name: str
+    address: str
+    image: str
+
+
+class Trip(BaseModel):
+    attraction: Attraction
+    date: str
+    time: str
+
+
+class Contact(BaseModel):
     name: str
     email: EmailStr
-    phone: str
+    phone: str = Field(..., pattern="^09\d{8}$")
+
+
+class OrderDetails(BaseModel):
+    price: int
+    trips: List[Trip]
+    contact: Contact
+
+
+class Order(BaseModel):
+    prime: str
+    order: OrderDetails
 
 
 @router.post("/orders")
-async def process_payment(request: Request, order: Order):
+async def post_orders(request: Request, order: Order):
     auth_token = request.headers.get("authToken")
 
     payload = jwt.decode(auth_token, JWT_SECRET_KEY, algorithms=["HS256"])
@@ -34,5 +54,178 @@ async def process_payment(request: Request, order: Order):
             content={"error": True, "message": "未登入系統，拒絕存取"},
         )
 
-    print("orderorder", order)
-    return None
+    user_id = payload["id"]
+    connection = None
+    try:
+        connection = get_db_connection()
+
+        order_query = """
+        SELECT order_number FROM orders
+        WHERE user_id = %s AND status = 0
+        """
+        order_result = execute_query(connection, order_query, (user_id,))
+
+        if not order_result:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"error": True, "message": "沒有找到待處理的訂單"},
+            )
+
+        order_number = order_result["order_number"]
+
+        booking_query = """
+        SELECT time_of_day FROM booking
+        WHERE order_number = %s
+        """
+        bookings = execute_query(
+            connection, booking_query, (order_number,), fetch_method="fetchall"
+        )
+
+        total_price = 0
+        for booking in bookings:
+            time_of_day = booking["time_of_day"]
+            if time_of_day == "morning":
+                total_price += 2000
+            elif time_of_day == "afternoon":
+                total_price += 2500
+
+        if total_price != order.order.price:
+            return JSONResponse(
+                status_code=status.HTTP_403_FORBIDDEN,
+                content={"error": True, "message": "前端送出價格與後端驗證價格不同"},
+            )
+
+        update_query = """
+        UPDATE orders
+        SET status = 1, price = %s, name = %s, email = %s, phone = %s
+        WHERE order_number = %s
+        """
+        execute_query(
+            connection,
+            update_query,
+            (
+                order.order.price,
+                order.order.contact.name,
+                order.order.contact.email,
+                order.order.contact.phone,
+                order_number,
+            ),
+        )
+
+        response_content = {
+            "data": {
+                "number": order_number,
+                "payment": {"status": 0, "message": "付款成功"},
+            }
+        }
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content=response_content)
+
+    except mysql.connector.Error as err:
+        if connection:
+            connection.rollback()
+        logger.error("伺服器內部錯誤:%s", err)
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"error": True, "message": str(err)},
+        )
+    finally:
+        if connection:
+            connection.close()
+
+
+@router.get("/order/{order_number}")
+async def get_orders(request: Request, order_number: int):
+    auth_token = request.headers.get("authToken")
+    payload = jwt.decode(auth_token, JWT_SECRET_KEY, algorithms=["HS256"])
+    if not payload:
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={"error": True, "message": "未登入系統，拒絕存取"},
+        )
+
+    connection = None
+    try:
+        connection = get_db_connection()
+        query = """
+        SELECT 
+            O.price,
+            O.name,
+            O.email,
+            O.phone,
+            O.status,
+            B.attraction_id,
+            B.time_of_day,
+            B.date,
+            A.id AS attraction_id,
+            A.name AS attraction_name,
+            A.address AS attraction_address,
+            (SELECT url FROM IMAGES WHERE attraction_id = A.id LIMIT 1) AS image_url
+        FROM 
+            ORDERS O
+        JOIN 
+            BOOKING B ON  %s  = B.order_number
+        JOIN 
+            ATTRACTIONS A ON B.attraction_id = A.id
+        WHERE 
+            O.user_id = %s AND O.status = 1
+        """
+
+        results = execute_query(
+            connection,
+            query,
+            (
+                order_number,
+                payload["id"],
+            ),
+            fetch_method="fetchall",
+        )
+
+        if not results:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"error": True, "message": "沒有找到待處理的訂單"},
+            )
+
+        trips = []
+
+        for result in results:
+            trip = {
+                "attraction": {
+                    "id": result["attraction_id"],
+                    "name": result["attraction_name"],
+                    "address": result["attraction_address"],
+                    "image": result["image_url"],
+                },
+                "date": result["date"].isoformat(),
+                "time": result["time_of_day"],
+            }
+            trips.append(trip)
+
+        formatted_response = {
+            "data": {
+                "number": order_number,
+                "price": results[0]["price"],
+                "trips": trips,
+                "contact": {
+                    "name": results[0]["name"],
+                    "email": results[0]["email"],
+                    "phone": results[0]["phone"],
+                },
+                "status": results[0]["status"],
+            }
+        }
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content=formatted_response)
+
+    except mysql.connector.Error as err:
+        if connection:
+            connection.rollback()
+        logger.error("伺服器內部錯誤:%s", err)
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"error": True, "message": str(err)},
+        )
+    finally:
+        if connection:
+            connection.close()
