@@ -46,11 +46,9 @@ const TPDirectCardSetupAndCheck = async () => {
   });
 
   const loginRegister = document.getElementById("booking-submit");
-  console.log(loginRegister);
   loginRegister.onclick = () => {
     const getTappayFieldsStatus = TPDirect.card.getTappayFieldsStatus();
     tappayFieldsStatus.setState(getTappayFieldsStatus.canGetPrime);
-    console.log(getTappayFieldsStatus.canGetPrime);
   };
 };
 

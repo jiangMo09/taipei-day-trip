@@ -4,10 +4,11 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import List
 import jwt
 import mysql.connector
+import requests
 
 from utils.logger_api import setup_logger
 from utils.mysql import get_db_connection, execute_query
-from utils.load_env import JWT_SECRET_KEY
+from utils.load_env import JWT_SECRET_KEY, TAPPAY_MERCHANT_ID, TAPPAY_PARTNER_KEY
 
 router = APIRouter()
 logger = setup_logger("api.orders", "app.log")
@@ -61,7 +62,7 @@ async def post_orders(request: Request, order: Order):
 
         order_query = """
         SELECT order_number FROM orders
-        WHERE user_id = %s AND status = 0
+        WHERE user_id = %s AND status = 1
         """
         order_result = execute_query(connection, order_query, (user_id,))
 
@@ -95,15 +96,40 @@ async def post_orders(request: Request, order: Order):
                 content={"error": True, "message": "前端送出價格與後端驗證價格不同"},
             )
 
+        TAPPAY_URL = "https://sandbox.tappaysdk.com/tpc/payment/pay-by-prime"
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": TAPPAY_PARTNER_KEY,
+        }
+        TAPPAY_PAYLOAD = {
+            "prime": order.prime,
+            "partner_key": TAPPAY_PARTNER_KEY,
+            "merchant_id": TAPPAY_MERCHANT_ID,
+            "details": "TapPay Test",
+            "amount": total_price,
+            "order_number": order_number,
+            "cardholder": {
+                "phone_number": order.order.contact.phone,
+                "name": order.order.contact.name,
+                "email": order.order.contact.email,
+            },
+            "remember": True,
+        }
+        tappay_response = requests.post(
+            TAPPAY_URL, json=TAPPAY_PAYLOAD, headers=headers
+        )
+        result = tappay_response.json()
+
         update_query = """
         UPDATE orders
-        SET status = 1, price = %s, name = %s, email = %s, phone = %s
+        SET status = %s, price = %s, name = %s, email = %s, phone = %s
         WHERE order_number = %s
         """
         execute_query(
             connection,
             update_query,
             (
+                result["status"],
                 order.order.price,
                 order.order.contact.name,
                 order.order.contact.email,
@@ -115,7 +141,12 @@ async def post_orders(request: Request, order: Order):
         response_content = {
             "data": {
                 "number": order_number,
-                "payment": {"status": 0, "message": "付款成功"},
+                "payment": {
+                    "status": result["status"],
+                    "message": (
+                        "付款成功" if result["msg"] == "Success" else result["msg"]
+                    ),
+                },
             }
         }
 
@@ -127,14 +158,22 @@ async def post_orders(request: Request, order: Order):
         logger.error("伺服器內部錯誤:%s", err)
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content={"error": True, "message": str(err)},
+            content={"error": True, "message": "伺服器內部錯誤"},
         )
     finally:
         if connection:
             connection.close()
 
 
-@router.get("/order/{order_number}")
+class OrderResponse(BaseModel):
+    number: int
+    price: int
+    trips: List[Trip]
+    contact: Contact
+    status: int
+
+
+@router.get("/order/{order_number}", response_model=OrderResponse)
 async def get_orders(request: Request, order_number: int):
     auth_token = request.headers.get("authToken")
     payload = jwt.decode(auth_token, JWT_SECRET_KEY, algorithms=["HS256"])
@@ -157,18 +196,21 @@ async def get_orders(request: Request, order_number: int):
             B.attraction_id,
             B.time_of_day,
             B.date,
-            A.id AS attraction_id,
             A.name AS attraction_name,
             A.address AS attraction_address,
-            (SELECT url FROM IMAGES WHERE attraction_id = A.id LIMIT 1) AS image_url
+            I.url AS image_url
         FROM 
             ORDERS O
         JOIN 
-            BOOKING B ON  %s  = B.order_number
+            BOOKING B ON O.order_number = B.order_number
         JOIN 
             ATTRACTIONS A ON B.attraction_id = A.id
+        LEFT JOIN 
+            (SELECT attraction_id, MIN(url) AS url
+             FROM IMAGES
+             GROUP BY attraction_id) I ON A.id = I.attraction_id
         WHERE 
-            O.user_id = %s AND O.status = 1
+            O.order_number = %s AND O.user_id = %s
         """
 
         results = execute_query(
@@ -187,44 +229,39 @@ async def get_orders(request: Request, order_number: int):
                 content={"error": True, "message": "沒有找到待處理的訂單"},
             )
 
-        trips = []
+        trips = [
+            Trip(
+                attraction=Attraction(
+                    id=result["attraction_id"],
+                    name=result["attraction_name"],
+                    address=result["attraction_address"],
+                    image=result["image_url"],
+                ),
+                date=result["date"].isoformat(),
+                time=result["time_of_day"],
+            )
+            for result in results
+        ]
 
-        for result in results:
-            trip = {
-                "attraction": {
-                    "id": result["attraction_id"],
-                    "name": result["attraction_name"],
-                    "address": result["attraction_address"],
-                    "image": result["image_url"],
-                },
-                "date": result["date"].isoformat(),
-                "time": result["time_of_day"],
-            }
-            trips.append(trip)
+        response = OrderResponse(
+            number=order_number,
+            price=results[0]["price"],
+            trips=trips,
+            contact=Contact(
+                name=results[0]["name"],
+                email=results[0]["email"],
+                phone=results[0]["phone"],
+            ),
+            status=results[0]["status"],
+        )
 
-        formatted_response = {
-            "data": {
-                "number": order_number,
-                "price": results[0]["price"],
-                "trips": trips,
-                "contact": {
-                    "name": results[0]["name"],
-                    "email": results[0]["email"],
-                    "phone": results[0]["phone"],
-                },
-                "status": results[0]["status"],
-            }
-        }
-
-        return JSONResponse(status_code=status.HTTP_200_OK, content=formatted_response)
+        return response
 
     except mysql.connector.Error as err:
-        if connection:
-            connection.rollback()
         logger.error("伺服器內部錯誤:%s", err)
         return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={"error": True, "message": str(err)},
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"error": True, "message": "伺服器內部錯誤"},
         )
     finally:
         if connection:
