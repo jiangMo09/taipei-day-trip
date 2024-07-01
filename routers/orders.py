@@ -61,7 +61,7 @@ async def post_orders(request: Request, order: Order):
         connection = get_db_connection()
 
         order_query = """
-        SELECT order_number FROM orders
+        SELECT order_number FROM ORDERS
         WHERE user_id = %s AND status = 'UNPAID'
         """
         order_result = execute_query(connection, order_query, (user_id,))
@@ -123,7 +123,7 @@ async def post_orders(request: Request, order: Order):
         tappay_status = "PAID" if result["status"] == 0 else "UNPAID"
 
         update_query = """
-        UPDATE orders
+        UPDATE ORDERS
         SET status = %s, price = %s, name = %s, email = %s, phone = %s
         WHERE order_number = %s
         """
