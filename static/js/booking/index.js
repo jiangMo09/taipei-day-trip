@@ -112,4 +112,169 @@ const renderBooking = async () => {
   }
 };
 
-window.addEventListener("load", renderBooking);
+const TPDirectCardSetupAndCheck = async () => {
+  await TPDirect.setupSDK(
+    151559,
+    "app_c6fxgnloCMZySMjCi5lhPZa5j9D3CNuHZTJDIy2xCc9Z6VE7RzAtROT23Ejp",
+    "sandbox"
+  );
+
+  TPDirect.card.setup({
+    fields: {
+      number: {
+        element: "#card-number",
+        placeholder: "**** **** **** ****"
+      },
+      expirationDate: {
+        element: "#card-expiration-date",
+        placeholder: "MM / YY"
+      },
+      ccv: {
+        element: "#card-ccv",
+        placeholder: "CVV"
+      }
+    },
+    styles: {
+      input: {
+        color: "gray"
+      },
+      ":focus": {
+        color: "black"
+      },
+      ".valid": {
+        color: "green"
+      },
+      ".invalid": {
+        color: "red"
+      }
+    },
+    isMaskCreditCardNumber: true,
+    maskCreditCardNumberRange: {
+      beginIndex: 6,
+      endIndex: 11
+    }
+  });
+
+  const loginRegister = document.getElementById("booking-submit");
+  loginRegister.onclick = () => {
+    const contactInfo = checkUserInfo();
+    if (!contactInfo) {
+      return;
+    }
+
+    const getTappayFieldsStatus = TPDirect.card.getTappayFieldsStatus();
+    if (!getTappayFieldsStatus.canGetPrime) {
+      alert("請填寫正確的信用卡資訊");
+      return;
+    }
+
+    const { name, email, phone } = contactInfo;
+
+    TPDirect.card.getPrime(async (result) => {
+      if (result.status !== 0) {
+        alert("獲取 prime 失敗: " + result.msg);
+        return;
+      }
+
+      try {
+        const authToken = localStorage.getItem("authToken");
+        if (!authToken) {
+          alert("未登錄，請先登錄");
+          return;
+        }
+
+        const totalPrice = parseInt(
+          document.querySelector(".total-cost").textContent
+        );
+
+        const trips = Array.from(document.querySelectorAll(".schedule")).map(
+          (schedule) => {
+            return {
+              attraction: {
+                id: parseInt(schedule.querySelector(".delete").dataset.itemId),
+                name: schedule.querySelector(".attraction").textContent,
+                address: schedule.querySelector(".place-value").textContent,
+                image: schedule.querySelector("img").src
+              },
+              date: schedule.querySelector(".date-value").textContent,
+              time: schedule
+                .querySelector(".time-value")
+                .textContent.toLowerCase()
+            };
+          }
+        );
+
+        const contactInfo = checkUserInfo();
+        if (!contactInfo) {
+          return;
+        }
+
+        const requestBody = {
+          prime: result.card.prime,
+          order: {
+            price: totalPrice,
+            trips: trips,
+            contact: {
+              name: name,
+              email: email,
+              phone: phone
+            }
+          }
+        };
+
+        const response = await fetchData(`/api/orders`, {
+          method: "POST",
+          headers: {
+            authToken: authToken,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(requestBody)
+        });
+
+        if (response.error) {
+          alert(`訂單創建失敗: ${response.message || "未知錯誤"}`);
+          console.error("訂單創建失敗:", response);
+        }
+        if (response?.data?.number) {
+          window.location.href = `/thankyou?number=${response.data.number}`;
+        }
+      } catch (error) {
+        console.error("付款失敗:", error);
+        alert("訂單創建失敗，請稍後再試");
+      }
+    });
+  };
+};
+
+const checkUserInfo = () => {
+  const contactName = document.getElementById("contact-name").value;
+  const contactEmail = document.getElementById("contact-email").value;
+  const contactPhone = document.getElementById("contact-phone").value;
+
+  if (!contactName) {
+    alert("請填寫姓名");
+    return false;
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!contactEmail || !emailRegex.test(contactEmail)) {
+    alert("請填寫正確的電子郵件地址");
+    return false;
+  }
+
+  const phoneRegex = /^09\d{8}$/;
+  if (!contactPhone || !phoneRegex.test(contactPhone)) {
+    alert("請填寫正確的手機號碼");
+    return false;
+  }
+
+  return {
+    name: contactName,
+    email: contactEmail,
+    phone: contactPhone
+  };
+};
+
+window.addEventListener("load", async () => {
+  await renderBooking();
+  await TPDirectCardSetupAndCheck();
+});

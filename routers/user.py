@@ -56,7 +56,7 @@ async def signup(user: UserSignup):
         return {"ok": True}
     except mysql.connector.Error as err:
         logger.error("註冊錯誤:%s", err)
-        return {"error": True, "message": str(err)}
+        return {"error": True, "message": "伺服器內部錯誤"}
     finally:
         if connection:
             connection.close()
@@ -95,7 +95,7 @@ async def authenticate_user(user: UserLogin):
         return {"token": jwt_token}
     except mysql.connector.Error as err:
         logger.error("登入錯誤:%s", err)
-        return {"error": True, "message": str(err)}
+        return {"error": True, "message": "伺服器內部錯誤"}
     finally:
         if connection:
             connection.close()

@@ -1,0 +1,13 @@
+.thankyou {
+  margin-top: 40px;
+  text-align: center;
+
+  .order-number {
+    margin: 20px 0;
+  }
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+}

@@ -4,6 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Thank You</title>
+    <link rel="stylesheet" href="/static/css/header-footer.css" />
+    <link rel="stylesheet" href="/static/css/singin.css" />
+    <link rel="stylesheet" href="/static/css/thankyou.css" />
   </head>
-  <body></body>
+  <body>
+    <div class="thankyou">
+      <div>感謝您的訂購，您的訂單編號為：</div>
+      <div class="order-number">載入中...</div>
+      <a href="/">回首頁</a>
+      <br />
+      <!-- <a class="watch-api" href="#" target="_blank">使用 api 看詳細 json 檔</a> -->
+    </div>
+    <footer>COPYRIGHT © 2024 台北一日遊</footer>
+    <div id="loginDialog" class="modal"></div>
+  </body>
+  <script type="module" src="/static/js/share/user.js"></script>
+  <script type="module" src="/static/js/thankyou/index.js"></script>
 </html>

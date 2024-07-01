@@ -37,10 +37,16 @@ window.addEventListener("load", async () => {
   const headerBooking = document.getElementById("headerBooking");
 
   const isBookingPage = window.location.pathname === "/booking";
+  const isThankyouPage = window.location.pathname === "/thankyou";
 
   await checkLoginStatus(loginRegister);
 
   if (isBookingPage && !isLoggedIn.getState()) {
+    window.location.href = "/";
+    return;
+  }
+
+  if (isThankyouPage && !isLoggedIn.getState()) {
     window.location.href = "/";
     return;
   }
