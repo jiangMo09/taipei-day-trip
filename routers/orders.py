@@ -75,7 +75,7 @@ async def post_orders(request: Request, order: Order):
         order_number = order_result["order_number"]
 
         booking_query = """
-        SELECT time_of_day FROM booking
+        SELECT time_of_day FROM BOOKING
         WHERE order_number = %s
         """
         bookings = execute_query(
