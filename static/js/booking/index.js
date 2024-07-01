@@ -234,8 +234,9 @@ const TPDirectCardSetupAndCheck = async () => {
         if (response.error) {
           alert(`訂單創建失敗: ${response.message || "未知錯誤"}`);
           console.error("訂單創建失敗:", response);
-        } else {
-          alert("訂單創建成功！");
+        }
+        if (response?.data?.number) {
+          window.location.href = `/thankyou?number=${response.data.number}`;
         }
       } catch (error) {
         console.error("付款失敗:", error);

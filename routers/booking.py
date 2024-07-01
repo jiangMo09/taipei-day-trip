@@ -60,7 +60,7 @@ async def create_booking(request: Request, booking: Booking):
             )
 
         order_number = None
-        query = "SELECT order_number FROM ORDERS WHERE user_id = %s AND status = 1"
+        query = "SELECT order_number FROM ORDERS WHERE user_id = %s AND status = 'UNPAID'"
         existing_order = execute_query(
             connection, query, (payload["id"],), fetch_method="fetchone"
         )
@@ -74,7 +74,7 @@ async def create_booking(request: Request, booking: Booking):
 
             while not insert_success and attempts < max_attempts:
                 order_number = "".join([str(random.randint(0, 9)) for _ in range(14)])
-                query = "INSERT INTO ORDERS (order_number, user_id, status) VALUES (%s, %s, 1)"
+                query = "INSERT INTO ORDERS (order_number, user_id, status) VALUES (%s, %s, 'UNPAID')"
                 try:
                     execute_query(connection, query, (order_number, payload["id"]))
                     insert_success = True

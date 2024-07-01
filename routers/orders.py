@@ -62,7 +62,7 @@ async def post_orders(request: Request, order: Order):
 
         order_query = """
         SELECT order_number FROM orders
-        WHERE user_id = %s AND status = 1
+        WHERE user_id = %s AND status = 'UNPAID'
         """
         order_result = execute_query(connection, order_query, (user_id,))
 
@@ -120,6 +120,8 @@ async def post_orders(request: Request, order: Order):
         )
         result = tappay_response.json()
 
+        tappay_status = "PAID" if result["status"] == 0 else "UNPAID"
+
         update_query = """
         UPDATE orders
         SET status = %s, price = %s, name = %s, email = %s, phone = %s
@@ -129,7 +131,7 @@ async def post_orders(request: Request, order: Order):
             connection,
             update_query,
             (
-                result["status"],
+                tappay_status,
                 order.order.price,
                 order.order.contact.name,
                 order.order.contact.email,
@@ -138,17 +140,24 @@ async def post_orders(request: Request, order: Order):
             ),
         )
 
-        response_content = {
-            "data": {
-                "number": order_number,
-                "payment": {
-                    "status": result["status"],
-                    "message": (
-                        "付款成功" if result["msg"] == "Success" else result["msg"]
-                    ),
-                },
+        response_content = {}
+        if result["status"] == 0:
+            response_content = {
+                "data": {
+                    "number": order_number,
+                    "payment": {
+                        "status": result["status"],
+                        "message": (
+                            "付款成功" if result["msg"] == "Success" else result["msg"]
+                        ),
+                    },
+                }
             }
-        }
+        else:
+            response_content = {
+                "error": True,
+                "message": "付款失敗，請稍後再試",
+            }
 
         return JSONResponse(status_code=status.HTTP_200_OK, content=response_content)
 
@@ -165,7 +174,7 @@ async def post_orders(request: Request, order: Order):
             connection.close()
 
 
-class OrderResponse(BaseModel):
+class OrderData(BaseModel):
     number: int
     price: int
     trips: List[Trip]
@@ -173,9 +182,14 @@ class OrderResponse(BaseModel):
     status: int
 
 
+class OrderResponse(BaseModel):
+    data: OrderData
+
+
 @router.get("/order/{order_number}", response_model=OrderResponse)
 async def get_orders(request: Request, order_number: int):
-    auth_token = request.headers.get("authToken")
+    auth_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwibmFtZSI6ImIiLCJlbWFpbCI6ImJAYi5jb20iLCJleHAiOjE3MjA0MTc5MTR9.ThJGlm8skINV92jpUGTUkNjLCqrG9Hmh29zgZDDhygk"
+    # auth_token = request.headers.get("authToken")
     payload = jwt.decode(auth_token, JWT_SECRET_KEY, algorithms=["HS256"])
     if not payload:
         return JSONResponse(
@@ -243,7 +257,7 @@ async def get_orders(request: Request, order_number: int):
             for result in results
         ]
 
-        response = OrderResponse(
+        order_data = OrderData(
             number=order_number,
             price=results[0]["price"],
             trips=trips,
@@ -252,8 +266,10 @@ async def get_orders(request: Request, order_number: int):
                 email=results[0]["email"],
                 phone=results[0]["phone"],
             ),
-            status=results[0]["status"],
+            status=1 if results[0]["status"] == "PAID" else 0,
         )
+
+        response = OrderResponse(data=order_data)
 
         return response
 
