@@ -134,12 +134,25 @@ async def get_booking(request: Request):
     try:
         connection = get_db_connection()
         query = """
-            SELECT BOOKING.id, BOOKING.attraction_id, ATTRACTIONS.name, ATTRACTIONS.address, 
-                   (SELECT url FROM IMAGES WHERE attraction_id = ATTRACTIONS.id LIMIT 1) AS image,
-                   BOOKING.date, BOOKING.time_of_day, BOOKING.price
-            FROM BOOKING
-            JOIN ATTRACTIONS ON BOOKING.attraction_id = ATTRACTIONS.id
-            WHERE BOOKING.user_id = %s
+            SELECT 
+                BOOKING.id, 
+                BOOKING.attraction_id, 
+                ATTRACTIONS.name, 
+                ATTRACTIONS.address, 
+                (SELECT url FROM IMAGES WHERE attraction_id = ATTRACTIONS.id LIMIT 1) AS image,
+                BOOKING.date, 
+                BOOKING.time_of_day, 
+                BOOKING.price,
+                ORDERS.status
+            FROM 
+                BOOKING
+            JOIN 
+                ATTRACTIONS ON BOOKING.attraction_id = ATTRACTIONS.id
+            JOIN 
+                ORDERS ON BOOKING.order_number = ORDERS.order_number
+            WHERE 
+                BOOKING.user_id = %s
+                AND ORDERS.status = 'UNPAID'
         """
         existing_bookings = execute_query(
             connection, query, (payload["id"],), fetch_method="fetchall"

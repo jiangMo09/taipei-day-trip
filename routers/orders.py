@@ -188,8 +188,7 @@ class OrderResponse(BaseModel):
 
 @router.get("/order/{order_number}", response_model=OrderResponse)
 async def get_orders(request: Request, order_number: int):
-    auth_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwibmFtZSI6ImIiLCJlbWFpbCI6ImJAYi5jb20iLCJleHAiOjE3MjA0MTc5MTR9.ThJGlm8skINV92jpUGTUkNjLCqrG9Hmh29zgZDDhygk"
-    # auth_token = request.headers.get("authToken")
+    auth_token = request.headers.get("authToken")
     payload = jwt.decode(auth_token, JWT_SECRET_KEY, algorithms=["HS256"])
     if not payload:
         return JSONResponse(
