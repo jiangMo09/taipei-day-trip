@@ -60,13 +60,12 @@ async def create_booking(request: Request, booking: Booking):
             )
 
         order_number = None
-        query = "SELECT order_number FROM ORDERS WHERE user_id = %s AND status = 0"
+        query = "SELECT order_number FROM ORDERS WHERE user_id = %s AND status = 'UNPAID'"
         existing_order = execute_query(
             connection, query, (payload["id"],), fetch_method="fetchone"
         )
 
         if existing_order:
-            print("existing_orderexisting_order", existing_order)
             order_number = existing_order["order_number"]
         else:
             insert_success = False
@@ -75,7 +74,7 @@ async def create_booking(request: Request, booking: Booking):
 
             while not insert_success and attempts < max_attempts:
                 order_number = "".join([str(random.randint(0, 9)) for _ in range(14)])
-                query = "INSERT INTO ORDERS (order_number, user_id, status) VALUES (%s, %s, 0)"
+                query = "INSERT INTO ORDERS (order_number, user_id, status) VALUES (%s, %s, 'UNPAID')"
                 try:
                     execute_query(connection, query, (order_number, payload["id"]))
                     insert_success = True
@@ -113,7 +112,7 @@ async def create_booking(request: Request, booking: Booking):
         logger.error("伺服器內部錯誤:%s", err)
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content={"error": True, "message": str(err)},
+            content={"error": True, "message": "伺服器內部錯誤"},
         )
     finally:
         if connection:
@@ -135,12 +134,25 @@ async def get_booking(request: Request):
     try:
         connection = get_db_connection()
         query = """
-            SELECT BOOKING.id, BOOKING.attraction_id, ATTRACTIONS.name, ATTRACTIONS.address, 
-                   (SELECT url FROM IMAGES WHERE attraction_id = ATTRACTIONS.id LIMIT 1) AS image,
-                   BOOKING.date, BOOKING.time_of_day, BOOKING.price
-            FROM BOOKING
-            JOIN ATTRACTIONS ON BOOKING.attraction_id = ATTRACTIONS.id
-            WHERE BOOKING.user_id = %s
+            SELECT 
+                BOOKING.id, 
+                BOOKING.attraction_id, 
+                ATTRACTIONS.name, 
+                ATTRACTIONS.address, 
+                (SELECT url FROM IMAGES WHERE attraction_id = ATTRACTIONS.id LIMIT 1) AS image,
+                BOOKING.date, 
+                BOOKING.time_of_day, 
+                BOOKING.price,
+                ORDERS.status
+            FROM 
+                BOOKING
+            JOIN 
+                ATTRACTIONS ON BOOKING.attraction_id = ATTRACTIONS.id
+            JOIN 
+                ORDERS ON BOOKING.order_number = ORDERS.order_number
+            WHERE 
+                BOOKING.user_id = %s
+                AND ORDERS.status = 'UNPAID'
         """
         existing_bookings = execute_query(
             connection, query, (payload["id"],), fetch_method="fetchall"
@@ -172,7 +184,7 @@ async def get_booking(request: Request):
         logger.error("伺服器內部錯誤:%s", err)
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content={"error": True, "message": str(err)},
+            content={"error": True, "message": "伺服器內部錯誤"},
         )
     finally:
         if connection:
@@ -212,7 +224,7 @@ async def delete_booking(request: Request, booking_id: int):
         logger.error("伺服器內部錯誤:%s", err)
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content={"error": True, "message": str(err)},
+            content={"error": True, "message": "伺服器內部錯誤"},
         )
     finally:
         if connection:
