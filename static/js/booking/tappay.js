@@ -1,8 +1,4 @@
-import { createState } from "../utils/createState.js";
-
-const tappayFieldsStatus = createState(false);
-
-const TPDirectCardSetupAndCheck = async () => {
+export const setupTapPay = async () => {
   await TPDirect.setupSDK(
     151559,
     "app_c6fxgnloCMZySMjCi5lhPZa5j9D3CNuHZTJDIy2xCc9Z6VE7RzAtROT23Ejp",
@@ -44,12 +40,12 @@ const TPDirectCardSetupAndCheck = async () => {
       endIndex: 11
     }
   });
-
-  const loginRegister = document.getElementById("booking-submit");
-  loginRegister.onclick = () => {
-    const getTappayFieldsStatus = TPDirect.card.getTappayFieldsStatus();
-    tappayFieldsStatus.setState(getTappayFieldsStatus.canGetPrime);
-  };
 };
 
-export { tappayFieldsStatus, TPDirectCardSetupAndCheck };
+export const getTappayStatus = () => {
+  return TPDirect.card.getTappayFieldsStatus();
+};
+
+export const getPrime = (callback) => {
+  TPDirect.card.getPrime(callback);
+};

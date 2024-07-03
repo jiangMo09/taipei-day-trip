@@ -1,5 +1,7 @@
 import { fetchData } from "../utils/fetchData.js";
 import { decodeJWT } from "../utils/decodeJwt.js";
+import { setupTapPay, getTappayStatus, getPrime } from "./tappay.js";
+
 let socket;
 const connectWebSocket = () => {
   const authToken = localStorage.getItem("authToken");
@@ -146,47 +148,7 @@ const renderBooking = async (websocket) => {
 };
 
 const TPDirectCardSetupAndCheck = async () => {
-  await TPDirect.setupSDK(
-    151559,
-    "app_c6fxgnloCMZySMjCi5lhPZa5j9D3CNuHZTJDIy2xCc9Z6VE7RzAtROT23Ejp",
-    "sandbox"
-  );
-
-  TPDirect.card.setup({
-    fields: {
-      number: {
-        element: "#card-number",
-        placeholder: "**** **** **** ****"
-      },
-      expirationDate: {
-        element: "#card-expiration-date",
-        placeholder: "MM / YY"
-      },
-      ccv: {
-        element: "#card-ccv",
-        placeholder: "CVV"
-      }
-    },
-    styles: {
-      input: {
-        color: "gray"
-      },
-      ":focus": {
-        color: "black"
-      },
-      ".valid": {
-        color: "green"
-      },
-      ".invalid": {
-        color: "red"
-      }
-    },
-    isMaskCreditCardNumber: true,
-    maskCreditCardNumberRange: {
-      beginIndex: 6,
-      endIndex: 11
-    }
-  });
+  await setupTapPay();
 
   const loginRegister = document.getElementById("booking-submit");
   loginRegister.onclick = () => {
@@ -195,7 +157,7 @@ const TPDirectCardSetupAndCheck = async () => {
       return;
     }
 
-    const getTappayFieldsStatus = TPDirect.card.getTappayFieldsStatus();
+    const getTappayFieldsStatus = getTappayStatus();
     if (!getTappayFieldsStatus.canGetPrime) {
       alert("請填寫正確的信用卡資訊");
       return;
@@ -203,7 +165,7 @@ const TPDirectCardSetupAndCheck = async () => {
 
     const { name, email, phone } = contactInfo;
 
-    TPDirect.card.getPrime(async (result) => {
+    getPrime(async (result) => {
       if (result.status !== 0) {
         alert("獲取 prime 失敗: " + result.msg);
         return;

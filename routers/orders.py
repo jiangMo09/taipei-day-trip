@@ -265,7 +265,7 @@ async def get_orders(request: Request, order_number: int):
                 email=results[0]["email"],
                 phone=results[0]["phone"],
             ),
-            status=1 if results[0]["status"] == "PAID" else 0,
+            status=0 if results[0]["status"] == "PAID" else 1,
         )
 
         response = OrderResponse(data=order_data)
