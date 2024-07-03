@@ -87,8 +87,7 @@ export const booking = async ({ bookingDiv, name, category, mrt }) => {
       alert(data.message);
       return;
     }
-
-    window.location.href = "/booking";
+    alert("預訂成功！請查看您的預訂頁面。");
     return;
   };
 

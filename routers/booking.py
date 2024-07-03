@@ -1,7 +1,8 @@
 from datetime import date
 import random
 
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, Request, status, WebSocket
+from starlette.websockets import WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import jwt
@@ -13,6 +14,25 @@ from utils.load_env import JWT_SECRET_KEY
 
 router = APIRouter()
 logger = setup_logger("api.booking", "app.log")
+
+
+active_connections = {}
+
+
+@router.websocket("/ws/{user_id}")
+async def websocket_endpoint(websocket: WebSocket, user_id: str):
+    await websocket.accept()
+    active_connections[user_id] = websocket
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        del active_connections[user_id]
+
+
+async def notify_booking_created(user_id: str):
+    if user_id in active_connections:
+        await active_connections[user_id].send_json({"action": "refresh_booking"})
 
 
 class Booking(BaseModel):
@@ -107,6 +127,8 @@ async def create_booking(request: Request, booking: Booking):
                 booking.price,
             ),
         )
+
+        await notify_booking_created(str(payload["id"]))
         return JSONResponse(status_code=status.HTTP_200_OK, content={"ok": True})
     except mysql.connector.Error as err:
         logger.error("伺服器內部錯誤:%s", err)

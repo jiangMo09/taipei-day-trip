@@ -1,5 +1,34 @@
 import { fetchData } from "../utils/fetchData.js";
 import { decodeJWT } from "../utils/decodeJwt.js";
+let socket;
+const connectWebSocket = () => {
+  const authToken = localStorage.getItem("authToken");
+  if (!authToken) {
+    return;
+  }
+
+  const decodedPayload = decodeJWT(authToken);
+
+  socket = new WebSocket(`ws://localhost:8000/api/ws/${decodedPayload.id}`);
+
+  socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.action != "refresh_booking") {
+      return;
+    }
+    const websocket = true;
+    renderBooking(websocket);
+  };
+
+  socket.onclose = (event) => {
+    console.log("WebSocket 連接關閉:", event);
+    setTimeout(connectWebSocket, 1000); // 嘗試重新連接
+  };
+
+  socket.onerror = (error) => {
+    console.error("WebSocket 錯誤:", error);
+  };
+};
 
 const deleteBooking = async (bookingId) => {
   const authToken = localStorage.getItem("authToken");
@@ -23,7 +52,7 @@ const deleteBooking = async (bookingId) => {
   }
 };
 
-const renderBooking = async () => {
+const renderBooking = async (websocket) => {
   const authToken = localStorage.getItem("authToken");
   if (!authToken) {
     return;
@@ -45,7 +74,6 @@ const renderBooking = async () => {
     const confirmOrderContainer = document.querySelector(".confirm-order");
     const hrElements = document.querySelectorAll("hr");
     const footerElements = document.querySelector("footer");
-
     if (!data || data.length === 0) {
       const noBookingsMessage = document.createElement("div");
       noBookingsMessage.textContent = "目前沒有任何待預訂的行程";
@@ -59,6 +87,11 @@ const renderBooking = async () => {
       hrElements.forEach((hr) => (hr.style.display = "none"));
       return;
     }
+
+    if (websocket && schedulesContainer.innerHTML) {
+      schedulesContainer.innerHTML = "";
+    }
+
     let totalCost = 0;
     data.forEach((item) => {
       const scheduleElement = document.createElement("div");
@@ -275,6 +308,7 @@ const checkUserInfo = () => {
 };
 
 window.addEventListener("load", async () => {
+  connectWebSocket();
   await renderBooking();
   await TPDirectCardSetupAndCheck();
 });
