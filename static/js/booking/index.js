@@ -92,6 +92,12 @@ const renderBooking = async (websocket) => {
 
     if (websocket && schedulesContainer.innerHTML) {
       schedulesContainer.innerHTML = "";
+
+      contactContainer.style.display = "";
+      paymentContainer.style.display = "";
+      confirmOrderContainer.style.display = "";
+      footerElements.style.position = "";
+      hrElements.forEach((hr) => (hr.style.display = ""));
     }
 
     let totalCost = 0;
