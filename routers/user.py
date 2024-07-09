@@ -7,12 +7,25 @@ from utils.mysql import get_db_connection, execute_query
 from passlib.context import CryptContext
 from utils.logger_api import setup_logger
 from utils.load_env import JWT_SECRET_KEY
+import boto3
+from botocore.exceptions import ClientError
+from utils.load_env import SQS_URL
 
+sqs = boto3.client("sqs", region_name="ap-northeast-1")
 
 logger = setup_logger("api.user", "app.log")
 
 router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def send_sqs_message(email: str):
+    try:
+        message_body = f"New user registered: {email}"
+        response = sqs.send_message(QueueUrl=SQS_URL, MessageBody=message_body)
+        logger.info(f"Message sent to SQS. MessageId: {response['MessageId']}")
+    except ClientError as e:
+        logger.error(f"Error sending message to SQS: {e}")
 
 
 class UserSignup(BaseModel):
@@ -53,6 +66,8 @@ async def signup(user: UserSignup):
         hashed_password = pwd_context.hash(user.password)
         query = "INSERT INTO user (name, email, password) VALUES (%s, %s, %s)"
         execute_query(connection, query, (user.name, user.email, hashed_password))
+
+        send_sqs_message(user.email)
         return {"ok": True}
     except mysql.connector.Error as err:
         logger.error("註冊錯誤:%s", err)
