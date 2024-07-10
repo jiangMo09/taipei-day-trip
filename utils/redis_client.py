@@ -28,6 +28,9 @@ else:
 
 try:
     async_redis_client = redis.from_url(redis_url, **redis_options)
+    logger.info(
+        f"Redis client initialized successfully. URL: {'ElastiCache' if is_production else 'localhost'}"
+    )
 except redis.RedisError as e:
     logger.error(f"Error initializing Redis client: {e}")
     raise
