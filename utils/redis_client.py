@@ -19,7 +19,6 @@ if is_production:
     redis_options = {
         "encoding": "utf-8",
         "decode_responses": True,
-        "ssl": True,
         "ssl_cert_reqs": None,
     }
 else:
