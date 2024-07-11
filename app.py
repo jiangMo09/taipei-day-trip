@@ -1,6 +1,7 @@
 import logging
 import os
-from fastapi import FastAPI, Request
+import requests
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from routers import api_router
@@ -64,7 +65,16 @@ def serve_static_page(file_name: str):
 
 
 def get_html_content(file_name: str) -> str:
-    with open(f"./static/{file_name}", "r") as file:
-        content = file.read()
-    content = content.replace("/static/", f"{CDN_BASE_URL}/")
+    if is_production:
+        url = f"{CDN_BASE_URL}/{file_name}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            content = response.text.replace("/static/", f"{CDN_BASE_URL}/")
+
+        else:
+            raise HTTPException(status_code=404, detail="Page not found")
+    else:
+        with open(f"./static/{file_name}", "r") as file:
+            content = file.read()
+
     return content
