@@ -16,7 +16,9 @@ const showResponseInfo = (message, isSuccess) => {
 
 const loadForm = async (url, formType, loginDialog) => {
   try {
-    const response = await fetch(url);
+    const response = await fetch(
+      "https://dal3kbb5hx215.cloudfront.net/static" + url
+    );
     const html = await response.text();
     loginDialog.innerHTML = html;
     loginDialog.style.display = "block";
@@ -31,7 +33,7 @@ const loadForm = async (url, formType, loginDialog) => {
     if (formType === "login") {
       const signupLink = document.getElementsByClassName("signup")[0];
       signupLink.onclick = () =>
-        loadForm("/static/share/signup.html", "signup", loginDialog);
+        loadForm("/share/signup.html", "signup", loginDialog);
 
       document
         .getElementById("loginBtn")
@@ -77,7 +79,7 @@ const loadForm = async (url, formType, loginDialog) => {
     if (formType === "signup") {
       const signinLink = document.getElementsByClassName("signin")[0];
       signinLink.onclick = () =>
-        loadForm("/static/share/singin.html", "login", loginDialog);
+        loadForm("/share/singin.html", "login", loginDialog);
 
       const nameInput = document.getElementById("name");
       const emailInput = document.getElementById("email");
@@ -129,13 +131,13 @@ const loadForm = async (url, formType, loginDialog) => {
 
 export const handleLoginRegister = (loginRegister, loginDialog, showSingIn) => {
   if (showSingIn) {
-    loadForm("/static/share/singin.html", "login", loginDialog);
+    loadForm("/share/singin.html", "login", loginDialog);
     return;
   }
 
   loginRegister.onclick = () => {
     if (loginRegister.textContent !== "登出系統") {
-      loadForm("/static/share/singin.html", "login", loginDialog);
+      loadForm("/share/singin.html", "login", loginDialog);
       return;
     }
 
