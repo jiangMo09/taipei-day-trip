@@ -10,7 +10,7 @@ dbconfig = {
 }
 
 pool = mysql.connector.pooling.MySQLConnectionPool(
-    pool_name="mypool", pool_size=32, **dbconfig
+    pool_name="mypool", pool_size=15, **dbconfig
 )
 
 
